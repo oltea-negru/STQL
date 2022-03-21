@@ -5,7 +5,7 @@ import System.Environment
 }
 
 %wrapper "posn" 
-$digit = 0-9     
+$digit = 0-9   
 -- digits 
 $alpha = [a-zA-Z]    
 -- alphabetic characters
@@ -16,6 +16,11 @@ $white+                                                   ;
   \.                                { \p s -> TokenDot p }
   \<                                { \p s -> TokenLeftArrow p}
   \>                                { \p s -> TokenRighttArrow p}
+  \,                                { \p s -> TokenComma p }                                
+  \;                                { \p s -> TokenSemiColon p }
+  \:                                { \p s -> TokenColon p }
+  \/                                { \p s -> TokenSlash p }
+  \"                                { \p s -> TokenQuote p }
   "@base"                           { \p s -> TokenBase p } 
   "BASE"                            { \p s -> TokenBase p }
   "@prefix"                         { \p s -> TokenPrefix p  } 
@@ -33,7 +38,12 @@ data Token =
   TokenBase AlexPosn         | 
   TokenPrefix AlexPosn       |
   TokenInt AlexPosn Int      |
-  TokenVar AlexPosn String   
+  TokenVar AlexPosn String   |
+  TokenComma AlexPosn        | 
+  TokenSemiColon AlexPosn    |     
+  TokenColon AlexPosn        | 
+  TokenSlash AlexPosn        |
+  TokenQuote AlexPosn
   deriving (Eq,Show) 
 
 tokenPosn :: Token -> String
@@ -43,7 +53,11 @@ tokenPosn (TokenBase (AlexPn _ x y)) =show x++":"++ show y
 tokenPosn (TokenPrefix (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenInt (AlexPn _ x y) a) = show  x ++":"++show y
 tokenPosn (TokenVar (AlexPn _ x y) a) = show  x ++":"++show y
-tokenPosn (TokenDot (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenColon (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenComma (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenSemiColon (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenSlash (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenQuote (AlexPn _ x y)) = show  x ++":"++show y
 
 main = do
     contents <- readFile "test.ttl"
