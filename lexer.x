@@ -4,11 +4,9 @@ import System.IO
 import System.Environment
 }
 
-%wrapper "posn" 
-$digit = 0-9   
--- digits 
-$alpha = [a-zA-Z]    
--- alphabetic characters
+%wrapper "posn"   
+$letters = [a-zA-Z] 
+$number = [0-9]
 
 tokens :-
 $white+                                                   ; 
@@ -21,28 +19,26 @@ $white+                                                   ;
   \:                                { \p s -> TokenColon p }
   \/                                { \p s -> TokenSlash p }
   \"                                { \p s -> TokenQuote p }
+  "http://"                         { \p s -> TokenURI p}
   "@base"                           { \p s -> TokenBase p } 
-  "BASE"                            { \p s -> TokenBase p }
   "@prefix"                         { \p s -> TokenPrefix p  } 
-  "PREFIX"                          { \p s -> TokenPrefix p }
-  $digit+                           { \p s -> TokenInt p (read s) } 
-  $alpha [$alpha $digit \_ \â€™]*   { \p s -> TokenVar p s } 
+  [\+\-]?$number+                   { \p s -> TokenLiteral p s } 
+  $letters+                         { \p s -> TokenLiteral p s } 
 
 { 
--- Each action has type ::  AlexPosn -> String -> Token 
--- The token type: 
+
 data Token = 
-  TokenLeftArrow AlexPosn    | 
-  TokenRighttArrow AlexPosn  | 
-  TokenDot AlexPosn          |
-  TokenBase AlexPosn         | 
-  TokenPrefix AlexPosn       |
-  TokenInt AlexPosn Int      |
-  TokenVar AlexPosn String   |
-  TokenComma AlexPosn        | 
-  TokenSemiColon AlexPosn    |     
-  TokenColon AlexPosn        | 
-  TokenSlash AlexPosn        |
+  TokenLeftArrow AlexPosn         | 
+  TokenRighttArrow AlexPosn       | 
+  TokenDot AlexPosn               |
+  TokenBase AlexPosn              | 
+  TokenPrefix AlexPosn            |
+  TokenLiteral AlexPosn String    |
+  TokenComma AlexPosn             | 
+  TokenSemiColon AlexPosn         |     
+  TokenColon AlexPosn             | 
+  TokenSlash AlexPosn             |
+  TokenURI AlexPosn               |
   TokenQuote AlexPosn
   deriving (Eq,Show) 
 
@@ -51,13 +47,13 @@ tokenPosn (TokenLeftArrow (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenRighttArrow (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenBase (AlexPn _ x y)) =show x++":"++ show y 
 tokenPosn (TokenPrefix (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenInt (AlexPn _ x y) a) = show  x ++":"++show y
-tokenPosn (TokenVar (AlexPn _ x y) a) = show  x ++":"++show y
+tokenPosn (TokenLiteral (AlexPn _ x y) a) = show  x ++":"++show y
 tokenPosn (TokenColon (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenComma (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenSemiColon (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenSlash (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenQuote (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenURI (AlexPn _ x y)) = show  x ++":"++show y
 
 main = do
     contents <- readFile "test.ttl"

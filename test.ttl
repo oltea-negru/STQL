@@ -1,5 +1,2 @@
-@prefix
-<testSubA> <hasBool> true .
-BASE
-<testSubA> <hasBool> false .
-<testSubA> <hasStringLit> "literalstring" .
+-50 .
+dsafddf
