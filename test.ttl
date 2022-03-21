@@ -1,3 +1,5 @@
-@base <kjhkj> .
-  
- 
+@prefix
+<testSubA> <hasBool> true .
+BASE
+<testSubA> <hasBool> false .
+<testSubA> <hasStringLit> "literalstring" .
