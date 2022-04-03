@@ -9,21 +9,21 @@ $letters = [a-zA-Z]
 $number = [0-9]
 
 tokens :-
-$white+                                                   ; 
-  "#".*                                                   ; 
-  \.                                { \p s -> TokenDot p }
-  \<                                { \p s -> TokenLeftArrow p}
-  \>                                { \p s -> TokenRighttArrow p}
-  \,                                { \p s -> TokenComma p }                                
-  \;                                { \p s -> TokenSemiColon p }
-  \:                                { \p s -> TokenColon p }
-  \/                                { \p s -> TokenSlash p }
-  \"                                { \p s -> TokenQuote p }
-  "http://"                         { \p s -> TokenURI p}
-  "@base"                           { \p s -> TokenBase p } 
-  "@prefix"                         { \p s -> TokenPrefix p  } 
-  [\+\-]?$number+                   { \p s -> TokenLiteral p s } 
-  $letters+                         { \p s -> TokenLiteral p s } 
+$white+                                                                    ; 
+  "#".*                                                                    ; 
+  "http://www"\.$letters+\.$letters+(\.$letters+)*  { \p s -> TokenURI p s}
+  \.                                                { \p s -> TokenDot p }
+  \<                                                { \p s -> TokenLeftArrow p}
+  \>                                                { \p s -> TokenRighttArrow p}
+  \,                                                { \p s -> TokenComma p }                                
+  \;                                                { \p s -> TokenSemiColon p }
+  \:                                                { \p s -> TokenColon p }
+  \/                                                { \p s -> TokenSlash p }
+  \"                                                { \p s -> TokenQuote p }
+  "@base"                                           { \p s -> TokenBase p } 
+  "@prefix"                                         { \p s -> TokenPrefix p  } 
+  [\+\-]?$number+                                   { \p s -> TokenLiteral p s } 
+  $letters+                                         { \p s -> TokenLiteral p s } 
 
 { 
 
@@ -38,7 +38,7 @@ data Token =
   TokenSemiColon AlexPosn         |     
   TokenColon AlexPosn             | 
   TokenSlash AlexPosn             |
-  TokenURI AlexPosn               |
+  TokenURI AlexPosn String        |
   TokenQuote AlexPosn
   deriving (Eq,Show) 
 
@@ -53,10 +53,10 @@ tokenPosn (TokenComma (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenSemiColon (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenSlash (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenQuote (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenURI (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenURI (AlexPn _ x y) s) = show  x ++":"++show y
 
 main = do
-    contents <- readFile "test.ttl"
+    contents <- readFile "foo.ttl"
     let list = alexScanTokens contents
     print list
 }
