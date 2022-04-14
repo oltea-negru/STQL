@@ -11,25 +11,25 @@ $number = [0-9]
 tokens :-
 $white+                                                                    ; 
   "#".*                                                                    ; 
-  "http://www"\.$letters+\.$letters+(\.$letters+)*  { \p s -> TokenURI p s}
-  \.                                                { \p s -> TokenDot p }
-  \<                                                { \p s -> TokenLeftArrow p}
-  \>                                                { \p s -> TokenRighttArrow p}
-  \,                                                { \p s -> TokenComma p }                                
-  \;                                                { \p s -> TokenSemiColon p }
-  \:                                                { \p s -> TokenColon p }
-  \/                                                { \p s -> TokenSlash p }
-  \"                                                { \p s -> TokenQuote p }
-  "@base"                                           { \p s -> TokenBase p } 
-  "@prefix"                                         { \p s -> TokenPrefix p  } 
-  [\+\-]?$number+                                   { \p s -> TokenLiteral p s } 
-  $letters+                                         { \p s -> TokenLiteral p s } 
+  "http://www"\.$letters+\.$letters+(\/$letters+)?        { \p s -> TokenURI p s}
+  \.                                                      { \p s -> TokenDot p }
+  \<                                                      { \p s -> TokenLeftArrow p}
+  \>                                                      { \p s -> TokenRightArrow p}
+  \,                                                      { \p s -> TokenComma p }                                
+  \;                                                      { \p s -> TokenSemiColon p }
+  \:                                                      { \p s -> TokenColon p }
+  \/                                                      { \p s -> TokenSlash p }
+  \"                                                      { \p s -> TokenQuote p }
+  "@base"                                                 { \p s -> TokenBase p } 
+  "@prefix"                                               { \p s -> TokenPrefix p } 
+  [\+\-]?$number+                                         { \p s -> TokenLiteral p s } 
+  $letters+                                               { \p s -> TokenLiteral p s } 
 
 { 
 
 data Token = 
   TokenLeftArrow AlexPosn         | 
-  TokenRighttArrow AlexPosn       | 
+  TokenRightArrow AlexPosn       | 
   TokenDot AlexPosn               |
   TokenBase AlexPosn              | 
   TokenPrefix AlexPosn            |
@@ -44,7 +44,7 @@ data Token =
 
 tokenPosn :: Token -> String
 tokenPosn (TokenLeftArrow (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenRighttArrow (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenRightArrow (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenBase (AlexPn _ x y)) =show x++":"++ show y 
 tokenPosn (TokenPrefix (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenLiteral (AlexPn _ x y) a) = show  x ++":"++show y
@@ -55,8 +55,9 @@ tokenPosn (TokenSlash (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenQuote (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenURI (AlexPn _ x y) s) = show  x ++":"++show y
 
-main = do
-    contents <- readFile "foo.ttl"
-    let list = alexScanTokens contents
-    print list
+-- main = do
+--     file<- getArgs
+--     contents <- readFile $ head file 
+--     let list = alexScanTokens contents
+--     print list
 }

@@ -1,3 +1,6 @@
 bar.ttl
 foo.ttl
 out1.ttl
+lexer.hs
+out1.ttl
+parser.hs
