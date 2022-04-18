@@ -32,7 +32,7 @@ data Token =
   TokenLiteral AlexPosn String    |
   TokenComma AlexPosn             | 
   TokenSemiColon AlexPosn         |     
-  TokenColon AlexPosn             | 
+  TokenColon AlexPosn             |
   TokenURI AlexPosn String        
   deriving (Eq,Show) 
 
@@ -46,9 +46,9 @@ tokenPosn (TokenComma (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenSemiColon (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenURI (AlexPn _ x y) s) = show  x ++":"++show y
 
-main = do
-    file<- getArgs
-    contents <- readFile $ head file 
-    let list = alexScanTokens contents
-    print list
+-- main = do
+--     file<- getArgs
+--     contents <- readFile $ head file 
+--     let list = alexScanTokens contents
+--     print list
 }
