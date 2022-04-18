@@ -1,1 +1,2 @@
-<http://www.cw.org/subjectA> <http://www.cw.org> aha .
+
+<org> <http://www.example.org> sadas .

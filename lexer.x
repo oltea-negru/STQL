@@ -11,7 +11,7 @@ $number = [0-9]
 tokens :-
 $white+                                                                    ; 
   "#".*                                                                    ; 
-  "http://www"\.$letters+\.$letters+(\/$letters+)?        { \p s -> TokenURI p s}
+  "http://www"\.$letters+\.$letters+(\/$letters+)*(\/\#$letters+)?        { \p s -> TokenURI p s}
   \.                                                      { \p s -> TokenDot p }
   \<                                                      { \p s -> TokenLeftArrow p}
   \>                                                      { \p s -> TokenRightArrow p}
@@ -29,10 +29,10 @@ $white+                                                                    ;
 
 data Token = 
   TokenLeftArrow AlexPosn         | 
-  TokenRightArrow AlexPosn       | 
+  TokenRightArrow AlexPosn        | 
   TokenDot AlexPosn               |
   TokenBase AlexPosn              | 
-  TokenPrefix AlexPosn            |
+  TokenPrefix  AlexPosn           |
   TokenLiteral AlexPosn String    |
   TokenComma AlexPosn             | 
   TokenSemiColon AlexPosn         |     
@@ -46,7 +46,7 @@ tokenPosn :: Token -> String
 tokenPosn (TokenLeftArrow (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenRightArrow (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenBase (AlexPn _ x y)) =show x++":"++ show y 
-tokenPosn (TokenPrefix (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenPrefix (AlexPn _ x y) ) = show  x ++":"++show y
 tokenPosn (TokenLiteral (AlexPn _ x y) a) = show  x ++":"++show y
 tokenPosn (TokenColon (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenComma (AlexPn _ x y)) = show  x ++":"++show y
