@@ -1,2 +1,9 @@
-
-<org> <http://www.example.org> sadas .
+@base <http://www.example.org/> .
+@prefix foo : <http://www.exampleprefix.org/> .
+@prefix bar : <exampleBasePrefix/> .
+<http://www.exampleabsolute.org/exSub1>
+<http://www.exampleabsolute.org/exPred1>
+<http://www.exampleabsolute.org/obj1> .
+<exBaseSub> foo:exPred2 <exObj2> .
+bar:exSub2 <exPred3> "LiteralValue" , "asdsa";
+ <exPred3> "LiteralValue" , "asdsa". 
