@@ -11,11 +11,9 @@ $mix =[0-9a-zA-Z]
 
 tokens :-
 $white+                                                                    ; 
-  "#".*                                                                    ; 
+  \#.*                                                                    ; 
   "<""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?">"        { \p s -> TokenURI p s}
-  "<"$mix+\/?">"                                          {\p s ->TokenShort p s}
-  Bool                                                    {\p s -> TokenBool p }
-  Int                                                     {\p s -> TokenInt p }
+  "<"$mix+\/?">"                                            {\p s ->TokenShort p s}
   \.                                                      { \p s -> TokenDot p }
   \,                                                      { \p s -> TokenComma p }    
   \;                                                      { \p s -> TokenSemiColon p }
@@ -23,13 +21,13 @@ $white+                                                                    ;
   \"                                                      { \p s -> TokenQuote p }
   "@base"                                                 { \p s -> TokenBase p } 
   "@prefix"                                               { \p s -> TokenPrefix p } 
-  [\+\-]?$number+                                         { \p s -> TokenLiteral p s } 
-  $letters+                                               { \p s -> TokenLiteral p s }
-  PRINT                                                   { \p s -> TokenPrint p}
+  "PRINT"                                                   { \p s -> TokenPrint p}
   WHERE                                                   { \p s -> TokenWhere p}
   UNION                                                   { \p s -> TokenUnion p}
-  \<                                                      { \p s -> TokenLessThan p}
-  \>                                                      { \p s -> TokenGreaterThan p}
+  \<                                                      { \p s -> TokenLess p}
+  \>                                                      { \p s -> TokenGreater p}
+  \<\=                                                    { \p s -> TokenLessEq p}
+  \>\=                                                    { \p s -> TokenGreaterEq p}
   PRED                                                    { \p s -> TokenPred p}
   SUB                                                     { \p s -> TokenSub p}
   OBJ                                                     { \p s -> TokenObj p}
@@ -44,6 +42,10 @@ $white+                                                                    ;
   SORT                                                    { \p s -> TokenSort p}
   GET                                                     { \p s -> TokenGet p}
   \=                                                      { \p s -> TokenEquals p }
+  $letters+".ttl"                                         { \p s -> TokenFile p s}
+  "http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?     { \p s -> TokenURIValue p s} 
+  [\+\-]?$number+                                         { \p s -> TokenLiteral p s } 
+  $letters+                                               { \p s -> TokenLiteral p s } 
 
 { 
 
@@ -61,8 +63,10 @@ data Token =
   TokenPrint AlexPosn             |
   TokenWhere AlexPosn             |
   TokenUnion AlexPosn             |
-  TokenLessThan AlexPosn          |
-  TokenGreaterThan AlexPosn       |
+  TokenLess AlexPosn              |
+  TokenGreater AlexPosn           |
+  TokenLessEq AlexPosn            |
+  TokenGreaterEq AlexPosn         |
   TokenPred AlexPosn              |
   TokenSub AlexPosn               |
   TokenObj AlexPosn               |
@@ -78,8 +82,8 @@ data Token =
   TokenRestrict AlexPosn          |
   TokenSort AlexPosn              |
   TokenGet AlexPosn               |
-  TokenInt AlexPosn Int           |
-  TokenBool AlexPosn Bool
+  TokenURIValue AlexPosn String   |
+  TokenFile AlexPosn String    
   deriving (Eq, Show)
 
 tokenPosn :: Token -> String
@@ -95,8 +99,8 @@ tokenPosn (TokenURI (AlexPn _ x y) s) = show  x ++":"++show y
 tokenPosn (TokenPrint (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenWhere (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenUnion (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenLessThan (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenGreaterThan (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenLess (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenGreater (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenPred (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenSub (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenObj (AlexPn _ x y)) = show  x ++":"++show y
@@ -111,6 +115,10 @@ tokenPosn (TokenDelete (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenRestrict (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenSort (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenGet (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenLessEq (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenGreaterEq (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenURIValue (AlexPn _ x y) s) = show  x ++":"++show y
+tokenPosn (TokenFile (AlexPn _ x y) s) = show  x ++":"++show y
 
 
 main = do
