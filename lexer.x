@@ -9,8 +9,8 @@ $letters = [a-zA-Z]
 $number = [0-9]
 $mix =[0-9a-zA-Z]
 
-tokens :-
-$white+                                                                    ; 
+tokens :
+$white+                                                                   ; 
   \#.*                                                                    ; 
   "<""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?">"        { \p s -> TokenURI p s}
   "<"$mix+\/?">"                                          {\p s ->TokenShort p s}
