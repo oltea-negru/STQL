@@ -13,7 +13,9 @@ tokens :-
 $white+                                                                    ; 
   \#.*                                                                    ; 
   "<""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?">"        { \p s -> TokenURI p s}
-  "<"$mix+\/?">"                                            {\p s ->TokenShort p s}
+  "<"$mix+\/?">"                                          {\p s ->TokenShort p s}
+  Bool                                                    {\p s -> TokenBool p }
+  int                                                     {\p s -> TokenInt p }
   \.                                                      { \p s -> TokenDot p }
   \,                                                      { \p s -> TokenComma p }    
   \;                                                      { \p s -> TokenSemiColon p }

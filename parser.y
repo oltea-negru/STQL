@@ -8,7 +8,8 @@ import Lexer
 %error { parseError }
 %token  
     base       { TokenBase p }
-    lit        { TokenLiteral p $$ } 
+    lit        { TokenLiteral p $$ }  
+    int         {TokenInt p }
     http       { TokenURI p $$ }
     '.'        { TokenDot p }
     '<'        { TokenLeftArrow p }
@@ -37,7 +38,8 @@ Predicate:  Link                                      { Predicate $1 }
         
 ObjList:    ObjList ',' Object                        { MultipleObjects $1 $3 }
        |    Object                                    { SingleObject $1 }
-Object:     '"' Lit '"'                               { Object $2 }
+Object:     '"' Lit '"'                               { Object String $2 }
+       |     int                                      { Object Int $1}
        |    Link                                      { Object $1 }
 
 Link:       http                                      { $1 }

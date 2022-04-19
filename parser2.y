@@ -7,7 +7,11 @@
 %tokentype { Token } 
 %error { parseError }
 %token  
-  
+  Bool
+  Int
+  int
+  true
+  false
   PRINT                                                   { \p s -> TokenPrint p}
   WHERE                                                   { \p s -> TokenWhere p}
   UNION                                                   { \p s -> TokenUnion p}
@@ -29,19 +33,20 @@
   \=                                                      { \p s -> TokenEquals p }
 
 
-Expr: OUTPUT FROM Expr                {OutputAll $3}        --fix                                      
-    | LINK FROM Expr Expr             {LinkFiles $4 $5}
-    | OUTPUT FROM Expr WHERE Cond     {Filter $3 $5}
+Expr: PRINT FROM Expr                {OutputAll $3}                                            
+    | UNION FROM Expr Expr             {UnionFiles $4 $5}
+    | PRINT FROM Expr WHERE Cond     {Filter $3 $5}
     | file                            {File $1}
 
---change triptype to int???
 Cond: Expr LESSTHAN Expr                  {Comp $1 $3}
     | Expr GREATERTHAN Expr               {Comp $1 $3}
     | Expr '=' Expr                       {Comp $1 $3}
 
+
+
 Type: Bool
     | Int 
-    |
+    |  
 
 
 { 
@@ -51,7 +56,7 @@ parseError (b:bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++" "++ sh
 
 --type Environment = [ (String,Expr) ]
 
-data Expr= File String | LinkFiles Expr Expr | Filter Expr Comp | OutputAll Expr deriving (Show,Eq)
+data Expr= File String | UnionFiles Expr Expr | Filter Expr Comp | OutputAll Expr | deriving (Show,Eq)
 
 data Cond= Comp TripType TripType deriving (Show,Eq)
 
