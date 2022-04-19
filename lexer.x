@@ -14,6 +14,8 @@ $white+                                                                    ;
   "#".*                                                                    ; 
   "<""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?">"        { \p s -> TokenURI p s}
   "<"$mix+\/?">"                                          {\p s ->TokenShort p s}
+  Bool                                                    {\p s -> TokenBool p }
+  Int                                                     {\p s -> TokenInt p }
   \.                                                      { \p s -> TokenDot p }
   \,                                                      { \p s -> TokenComma p }    
   \;                                                      { \p s -> TokenSemiColon p }
@@ -75,7 +77,9 @@ data Token =
   TokenChange AlexPosn            | 
   TokenRestrict AlexPosn          |
   TokenSort AlexPosn              |
-  TokenGet AlexPosn               
+  TokenGet AlexPosn               |
+  TokenInt AlexPosn Int           |
+  TokenBool AlexPosn Bool
   deriving (Eq, Show)
 
 tokenPosn :: Token -> String

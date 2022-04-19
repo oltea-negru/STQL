@@ -1,3 +1,32 @@
+{
+    module LangParser where
+    import Lexer
+}
+
+%name parseCalc 
+%tokentype { Token } 
+%error { parseError }
+%token  
+  
+  PRINT                                                   { \p s -> TokenPrint p}
+  WHERE                                                   { \p s -> TokenWhere p}
+  UNION                                                   { \p s -> TokenUnion p}
+  \<                                                      { \p s -> TokenLessThan p}
+  \>                                                      { \p s -> TokenGreaterThan p}
+  PRED                                                    { \p s -> TokenPred p}
+  SUB                                                     { \p s -> TokenSub p}
+  OBJ                                                     { \p s -> TokenObj p}
+  AND                                                     { \p s -> TokenAnd p}
+  OR                                                      { \p s -> TokenOr p}
+  FROM                                                    { \p s -> TokenFrom p}
+  NOT                                                     { \p s -> TokenNot p}
+  ADD                                                     { \p s -> TokenAdd p}
+  DELETE                                                  { \p s -> TokenDelete p}
+  CHANGE                                                  { \p s -> TokenChange p}
+  RESTRICT                                                { \p s -> TokenRestrict p}  
+  SORT                                                    { \p s -> TokenSort p}
+  GET                                                     { \p s -> TokenGet p}
+  \=                                                      { \p s -> TokenEquals p }
 
 
 Expr: OUTPUT FROM Expr                {OutputAll $3}        --fix                                      

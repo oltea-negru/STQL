@@ -67,7 +67,7 @@ data Predicate = Predicate String | Pred String String deriving Show
 
 data ObjectList = SingleObject Object  |  MultipleObjects ObjectList Object    deriving Show
 
-data Object = Object String deriving Show --add bool and int
+data Object = Object String | Object Bool |Object Int deriving Show 
 
 main = do
      contents <- readFile "test.ttl"
