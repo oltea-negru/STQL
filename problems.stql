@@ -1,0 +1,15 @@
+
+^^problem 1:
+OUTPUT (LINK FROM "foo" "bar");
+
+^^problem 2:
+OUTPUT FROM "foo" WHERE SUB = "http://www.cw.org/#problem2" AND OBJ = "true";
+
+^^problem 3:
+OUTPUT FROM "foo" WHERE PRED = "http://www.cw.org/problem3/#predicate1" OR "http://www.cw.org/problem3/#predicate2" OR "http://www.cw.org/problem3/#predicate3"; 
+
+^^problem 4:
+LINK FROM (OUTPUT FROM "foo" WHERE OBJ = SUB IN "bar") (OUTPUT FROM "bar" WHERE OBJ = SUB IN "foo");
+
+^^problem 5:
+OUTPUT FROM "foo" WHERE OBJ LESSTHAN 0 AND OBJ GREATERTHAN 99;
