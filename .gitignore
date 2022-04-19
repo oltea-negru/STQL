@@ -4,3 +4,5 @@ out1.ttl
 parser.info
 lexer.hs
 parser.hs
+problems.stql
+SQTL.hs
