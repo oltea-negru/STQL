@@ -28,8 +28,8 @@ $white+                                                                   ;
   \<\=                                                    { \p s -> TokenLessEq p}
   \>\=                                                    { \p s -> TokenGreaterEq p}
   $number+                                                 { \p s -> TokenInt p (read s) }
-  TRUE                                                    {\p s -> TokenTrue p }
-  FALSE                                                   {\p s -> TokenFalse p }
+  TRUE                                                    {\p s -> TokenTrue p (read s) }
+  FALSE                                                   {\p s -> TokenFalse p (read s)}
   PRINT                                                   { \p s -> TokenPrint p}
   WHERE                                                   { \p s -> TokenWhere p}
   UNION                                                   { \p s -> TokenUnion p}
@@ -46,6 +46,7 @@ $white+                                                                   ;
   RESTRICT                                                { \p s -> TokenRestrict p}  
   SORT                                                    { \p s -> TokenSort p}
   GET                                                     { \p s -> TokenGet p}
+  SELECT                                                  { \p s -> TokenSelect p}
   \=                                                      { \p s -> TokenEquals p }
   $letters+".ttl"                                         { \p s -> TokenFile p s}
   "http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?     { \p s -> TokenURIValue p s} 
@@ -81,6 +82,7 @@ data Token =
   TokenOr AlexPosn                |
   TokenFrom AlexPosn              |
   TokenEquals AlexPosn            |
+  TokenSelect AlexPosn            |
   TokenNot AlexPosn               |
   TokenAdd AlexPosn               |
   TokenDelete AlexPosn            |
@@ -92,8 +94,8 @@ data Token =
   TokenFile AlexPosn String       |
   TokenLBrack AlexPosn            |
   TokenRBrack AlexPosn            |
-  TokenTrue AlexPosn              |
-  TokenFalse AlexPosn
+  TokenTrue AlexPosn Bool              |
+  TokenFalse AlexPosn Bool
   deriving (Eq, Show)
 
 tokenPosn :: Token -> String
@@ -103,8 +105,8 @@ tokenPosn (TokenPrefix (AlexPn _ x y) ) = show  x ++":"++show y
 tokenPosn (TokenLiteral (AlexPn _ x y) a) = show  x ++":"++show y
 tokenPosn (TokenColon (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenQuote (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenComma (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenSemiColon (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenComma (AlexPn _ x y)) = show  x ++"jdsbajdsbafdsbafjksadfbsadjbfdsjbfdsjafbsdjfbsadj:"++show y
+tokenPosn (TokenSemiColon (AlexPn _ x y)) = show  x ++":ddfdsggfdsgfdsg"++show y
 tokenPosn (TokenURI (AlexPn _ x y) s) = show  x ++":"++show y
 tokenPosn (TokenPrint (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenWhere (AlexPn _ x y)) = show  x ++":"++show y
@@ -131,14 +133,15 @@ tokenPosn (TokenURIValue (AlexPn _ x y) s) = show  x ++":"++show y
 tokenPosn (TokenFile (AlexPn _ x y) s) = show  x ++":"++show y
 tokenPosn (TokenLBrack (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenRBrack (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenTrue (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenFalse (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenTrue (AlexPn _ x y)s) = show  x ++":"++show y
+tokenPosn (TokenFalse (AlexPn _ x y)s) = show  x ++":"++show y
+tokenPosn (TokenSelect (AlexPn _ x y)) = show  x ++":"++show y
 
 
 
-main = do
-    file<- getArgs
-    contents <- readFile $ head file 
-    let list = alexScanTokens contents
-    print list
+-- main = do
+--     file<- getArgs
+--     contents <- readFile $ head file 
+--     let list = alexScanTokens contents
+--     print list
 }

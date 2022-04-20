@@ -1,14 +1,13 @@
 { 
 module Parser where 
 import Lexer 
-import LangParser
 }
 
 %name parseCalc 
 %tokentype { Token } 
 %error { parseError }
 %token  
- prefix     { TokenPrefix p }
+    prefix     { TokenPrefix p }
     base       { TokenBase p }
     lit        { TokenLiteral p $$ } 
     http       { TokenURI p $$ }
@@ -18,7 +17,7 @@ import LangParser
     ';'        { TokenSemiColon p }
     ':'        { TokenColon p }
     '"'        { TokenQuote p }
-    int        {TokenInt p }                        
+    int        {TokenInt p $$ }                        
 
 %left '.' ',' ';'
 %%
@@ -41,9 +40,9 @@ Predicate:  Link                                      { Predicate $1 }
         
 ObjList:    ObjList ',' Object                        { MultipleObjects $1 $3 }
        |    Object                                    { SingleObject $1 }
-Object:     '"' Lit '"'                               { Object String $2 }
-       |     int                                      { Object Int $1}
-       |    Link                                      { Object $1 }
+Object:     '"' Lit '"'                               { ObjectString $2 }
+       |     int                                      { ObjectInt $1}
+       |    Link                                      { ObjectString $1 }
 
 Link:       http                                      { $1 }
     |       short                                     { $1 }
@@ -72,14 +71,13 @@ data Predicate = Predicate String | Pred String String deriving (Show,Eq)
 
 data ObjectList = SingleObject Object  |  MultipleObjects ObjectList Object    deriving (Show,Eq)
 
-data Object = Object String | Object Bool |Object Int deriving (Show,Eq)
+data Object = ObjectString String | ObjectBool Bool |ObjectInt Int deriving (Show,Eq)
 
-
-main = do
-     contents <- readFile "test.ttl"
-     let tokens = alexScanTokens contents
-     let result = parseCalc tokens
-     print result
+-- main = do
+--      contents <- readFile "test.ttl"
+--      let tokens = alexScanTokens contents
+--      let result = parseCalc tokens
+--      print result
 } 
 
 
