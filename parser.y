@@ -1,6 +1,7 @@
 { 
 module Parser where 
 import Lexer 
+import LangParser
 }
 
 %name parseCalc 
@@ -69,7 +70,8 @@ data Predicate = Predicate String | Pred String String deriving Show
 
 data ObjectList = SingleObject Object  |  MultipleObjects ObjectList Object    deriving Show
 
-data Object = Object String | Object Bool |Object Int deriving Show 
+data Object = Object String | Object Bool |Object Int deriving (Show,Eq)
+
 
 main = do
      contents <- readFile "test.ttl"

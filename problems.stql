@@ -1,6 +1,6 @@
 
 ^^problem 1:
-PRINT (UNION FROM "foo" "bar")
+PRINT FROM (UNION FROM "foo" "bar")
 
 ^^problem 2:
 PRINT FROM "foo" WHERE SUB = "http://www.cw.org/#problem2" AND OBJ = true

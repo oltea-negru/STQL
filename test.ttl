@@ -1,4 +1,4 @@
-PRINT UNION FROM "foo" "bar"
+PRINT FROM UNION FROM "foo" "bar"
 
 
 PRINT FROM "foo" WHERE SUB = "http://www.cw.org/#problem2" AND OBJ = true
