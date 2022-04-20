@@ -1,3 +1,2 @@
 
-
-PRINT FROM foo.ttl WHERE PRED = "http://www.cw.org/problem3/#predicate1";
+PRINT FROM foo.ttl WHERE 32124<13213 OR 2421412>142124 ;

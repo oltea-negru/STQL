@@ -72,12 +72,8 @@ Field: SUB                                { $1 }
 
 Number: int {$1}
 
-File: file                           { File $1}
-    | UNION File File                { Union $2 $3}
-
-Type: int                            { IntType $1}     
-    | Bool                           { BoolType $1}
-    | file                           { File $1}
+File:  UNION File File                { Union $2 $3} 
+    |  file                           { File $1}
 
 Bool: TRUE   { $1}
     | FALSE  { $1}
@@ -95,27 +91,26 @@ Bool: TRUE   { $1}
 
 { 
 
-data Expr=  Print String Expr 
-          | SimplePrint String
-          | Union String String 
+data Expr=  Print File Expr 
+          | SimplePrint File
           | Where Cond
-          | And Cond Cond 
-          | Not Cond 
-          | Or Cond Cond
+             | Not Cond 
           | Get Int
           | Add String 
           | Delete String 
           | Change String
-          | Restrict (Int, Int)
-          | BoolType Bool 
+         deriving (Show,Eq)
+         
+          -- | Restrict (Int, Int)
+data Type = BoolType Bool 
           | IntType Int
-          | File String
-
+   
          deriving (Show,Eq)
 
-data Cond = Less Int Int | Greater Int Int | LessOr Int Int | GreaterOr Int Int | Equal Int Int deriving (Show, Eq)
+data Cond = Less Int Int | Greater Int Int | LessOr Int Int | GreaterOr Int Int | Equal Int Int | And Cond Cond 
+          | Or Cond Cond deriving (Show, Eq)
 
--- data File =File String deriving (Show,Eq)
+data File =File String | Union File File  deriving (Show,Eq)
 
 
 parseError :: [Token] -> a
