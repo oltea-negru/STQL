@@ -27,9 +27,7 @@ $white+                                                                   ;
   \>                                                      { \p s -> TokenGreater p}
   \<\=                                                    { \p s -> TokenLessEq p}
   \>\=                                                    { \p s -> TokenGreaterEq p}
-  BOOL                                                    {\p s -> TokenBoolType p }
-  --$digit+                                                 { \p s -> TokenInt p (read s) }
-  INT                                                     {\p s -> TokenIntType p }
+  $number+                                                 { \p s -> TokenInt p (read s) }
   TRUE                                                    {\p s -> TokenTrue p }
   FALSE                                                   {\p s -> TokenFalse p }
   PRINT                                                   { \p s -> TokenPrint p}
@@ -68,6 +66,7 @@ data Token =
   TokenColon AlexPosn             |
   TokenURI AlexPosn String        |
   TokenPrint AlexPosn             |
+  TokenInt AlexPosn Int           |
   TokenWhere AlexPosn             |
   TokenUnion AlexPosn             |
   TokenLess AlexPosn              |
@@ -92,7 +91,9 @@ data Token =
   TokenURIValue AlexPosn String   |
   TokenFile AlexPosn String       |
   TokenLBrack AlexPosn            |
-  TokenRBrack AlexPosn 
+  TokenRBrack AlexPosn            |
+  TokenTrue AlexPosn              |
+  TokenFalse AlexPosn
   deriving (Eq, Show)
 
 tokenPosn :: Token -> String
@@ -130,6 +131,9 @@ tokenPosn (TokenURIValue (AlexPn _ x y) s) = show  x ++":"++show y
 tokenPosn (TokenFile (AlexPn _ x y) s) = show  x ++":"++show y
 tokenPosn (TokenLBrack (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenRBrack (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenTrue (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenFalse (AlexPn _ x y)) = show  x ++":"++show y
+
 
 
 main = do
