@@ -1,7 +1,4 @@
 
-type Kontinuation = [ Frame ]
-type Configuration = (Expr,Environment,Kontinuation)
-
 {- data Triplets = SingleTriplet Triplet | MultipleTriplets Triplet Triplets deriving Show     
 
 data Triplet= Triplet Subject PredicateList deriving Show

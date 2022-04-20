@@ -1,21 +1,24 @@
 { 
 module Parser where 
 import Lexer 
+import LangParser
 }
 
 %name parseCalc 
 %tokentype { Token } 
 %error { parseError }
 %token  
+ prefix     { TokenPrefix p }
     base       { TokenBase p }
-    lit        { TokenLiteral p $$ }  
-    int         {TokenInt p }
+    lit        { TokenLiteral p $$ } 
     http       { TokenURI p $$ }
+    short      { TokenShort p $$}
     '.'        { TokenDot p }
-    '<'        { TokenLeftArrow p }
-    '>'        { TokenRightArrow p }
     ','        { TokenComma p }
-    ';'        { TokenSemiColon p }                          
+    ';'        { TokenSemiColon p }
+    ':'        { TokenColon p }
+    '"'        { TokenQuote p }
+    int        {TokenInt p }                        
 
 %left '.' ',' ';'
 %%
@@ -55,21 +58,22 @@ data Exp = TheBase String
          | Prefix String String
          | Triplets Triplet 
          | Seq Exp Exp
-         | End Exp deriving Show
+         | End Exp deriving (Show,Eq)
 
-data Triplet= Triplet Subject PredicateList deriving Show
+data Triplet= Triplet Subject PredicateList deriving (Show,Eq)
 
-data ShortTriplet= ShortTriplet Subject PredicateList deriving Show
+data ShortTriplet= ShortTriplet Subject PredicateList deriving (Show,Eq)
 
-data Subject = Subject String | Sub String String deriving Show
+data Subject = Subject String | Sub String String deriving (Show,Eq)
 
 data PredicateList = SinglePredicate Predicate ObjectList 
-                   | MultiplePredicates Predicate ObjectList  PredicateList deriving Show
-data Predicate = Predicate String | Pred String String deriving Show
+                   | MultiplePredicates Predicate ObjectList  PredicateList deriving (Show,Eq)
+data Predicate = Predicate String | Pred String String deriving (Show,Eq)
 
-data ObjectList = SingleObject Object  |  MultipleObjects ObjectList Object    deriving Show
+data ObjectList = SingleObject Object  |  MultipleObjects ObjectList Object    deriving (Show,Eq)
 
-data Object = Object String | Object Bool |Object Int deriving Show 
+data Object = Object String | Object Bool |Object Int deriving (Show,Eq)
+
 
 main = do
      contents <- readFile "test.ttl"

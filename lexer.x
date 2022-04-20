@@ -9,13 +9,13 @@ $letters = [a-zA-Z]
 $number = [0-9]
 $mix =[0-9a-zA-Z]
 
-tokens :
+tokens :-
 $white+                                                                   ; 
   \#.*                                                                    ; 
   "<""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?">"        { \p s -> TokenURI p s}
   "<"$mix+\/?">"                                          {\p s ->TokenShort p s}
-  Bool                                                    {\p s -> TokenBool p }
-  int                                                     {\p s -> TokenInt p }
+  \(                                                      {\p s -> TokenLBrack p}
+  \)                                                      {\p s -> TokenRBrack p}
   \.                                                      { \p s -> TokenDot p }
   \,                                                      { \p s -> TokenComma p }    
   \;                                                      { \p s -> TokenSemiColon p }
@@ -23,13 +23,16 @@ $white+                                                                   ;
   \"                                                      { \p s -> TokenQuote p }
   "@base"                                                 { \p s -> TokenBase p } 
   "@prefix"                                               { \p s -> TokenPrefix p } 
-  "PRINT"                                                   { \p s -> TokenPrint p}
-  WHERE                                                   { \p s -> TokenWhere p}
-  UNION                                                   { \p s -> TokenUnion p}
   \<                                                      { \p s -> TokenLess p}
   \>                                                      { \p s -> TokenGreater p}
   \<\=                                                    { \p s -> TokenLessEq p}
   \>\=                                                    { \p s -> TokenGreaterEq p}
+  $number+                                                 { \p s -> TokenInt p (read s) }
+  TRUE                                                    {\p s -> TokenTrue p }
+  FALSE                                                   {\p s -> TokenFalse p }
+  PRINT                                                   { \p s -> TokenPrint p}
+  WHERE                                                   { \p s -> TokenWhere p}
+  UNION                                                   { \p s -> TokenUnion p}
   PRED                                                    { \p s -> TokenPred p}
   SUB                                                     { \p s -> TokenSub p}
   OBJ                                                     { \p s -> TokenObj p}
@@ -63,6 +66,7 @@ data Token =
   TokenColon AlexPosn             |
   TokenURI AlexPosn String        |
   TokenPrint AlexPosn             |
+  TokenInt AlexPosn Int           |
   TokenWhere AlexPosn             |
   TokenUnion AlexPosn             |
   TokenLess AlexPosn              |
@@ -85,7 +89,11 @@ data Token =
   TokenSort AlexPosn              |
   TokenGet AlexPosn               |
   TokenURIValue AlexPosn String   |
-  TokenFile AlexPosn String    
+  TokenFile AlexPosn String       |
+  TokenLBrack AlexPosn            |
+  TokenRBrack AlexPosn            |
+  TokenTrue AlexPosn              |
+  TokenFalse AlexPosn
   deriving (Eq, Show)
 
 tokenPosn :: Token -> String
@@ -121,6 +129,11 @@ tokenPosn (TokenLessEq (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenGreaterEq (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenURIValue (AlexPn _ x y) s) = show  x ++":"++show y
 tokenPosn (TokenFile (AlexPn _ x y) s) = show  x ++":"++show y
+tokenPosn (TokenLBrack (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenRBrack (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenTrue (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenFalse (AlexPn _ x y)) = show  x ++":"++show y
+
 
 
 main = do
