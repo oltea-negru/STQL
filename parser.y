@@ -17,8 +17,9 @@ import Data.Typeable
     ','      { TokenComma p }
     ';'      { TokenSemiColon p }
     ':'      { TokenColon p }
-    '"'      { TokenQuote p }
-    int      { TokenInt p $$ }                        
+    int      { TokenInt p $$ }  
+    true     { TokenTrue p $$}
+    false    { TokenFalse p $$}                      
 
 %left '.' ',' ';'
 %%
@@ -35,26 +36,31 @@ Subject:    Link                                 { Subject $1 }
        |    Short                                { S $1}
 
 PredList:   Predicate ObjList                    { SinglePredicate $1 $2 }
-        |   Predicate ObjList ';' PredList       { MultiplePredicates $1 $2 $4 }
+        |   PredList ';' PredList                { MultiplePredicates $1 $3 }
+
 Predicate:  Link                                 { Predicate $1 }
          |  Notation                             { Pred $1 }
          |  Short                                { P $1 }
        
-ObjList:    ObjList ',' Object                   { MultipleObjects $1 $3 }
-       |    Object                               { SingleObject $1 }
-Object:     '"' Lit '"'                          { ObjectString $2 }
+ObjList:    Object                               { SingleObject $1 }
+       |    ObjList ',' ObjList                  { MultipleObjects $1 $3 }
+
+Object:     Lit                                  { ObjectString $1 }
        |    int                                  { ObjectInt $1 }
        |    Link                                 { ObjectLink $1 }
        |    Short                                { ObjectShort $1 }
+       |    Notation                             { ObjectNotation $1}
+       |    true                                 { ObjectBool $1}
+       |    false                                { ObjectBool $1}
 
 Link:       http                                 { Link $1 }
 Short:      short                                { Short $1 }
 Notation:   Lit ':' Lit                          { Notation $1 $3 }
-
 Lit:        lit                                  { Literal $1 }
 
 {
 parseError :: [Token] -> a
+parseError [] = error "No Tokens"
 parseError (b:bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++ " " ++ show b
 
 data Exp = TheBase Link
@@ -71,20 +77,21 @@ data Subject = Subject Link
              | S Short deriving (Show,Eq)
 
 data PredicateList = SinglePredicate Predicate ObjectList 
-                   | MultiplePredicates Predicate ObjectList PredicateList deriving (Show,Eq)
+                   | MultiplePredicates PredicateList PredicateList deriving (Show,Eq)
 
 data Predicate = Predicate Link 
                | Pred Notation 
                | P Short deriving (Show,Eq)
 
 data ObjectList = SingleObject Object  
-                | MultipleObjects ObjectList Object    deriving (Show,Eq)
+                | MultipleObjects ObjectList ObjectList    deriving (Show,Eq)
 
 data Object = ObjectString Literal 
             | ObjectBool Bool 
             | ObjectInt Int
             | ObjectLink Link
-            | ObjectShort Short deriving (Show,Eq)
+            | ObjectShort Short 
+            | ObjectNotation Notation deriving (Show,Eq)
 
 data Link = Link String deriving (Show, Eq)
 data Short = Short String deriving (Show, Eq)
@@ -125,7 +132,23 @@ fullSubject base prefixes (Subject (Link a))=a
 fullSubject base prefixes (Sub (Notation (Literal a)(Literal b)))=matchPrefix prefixes a ++ b ++">"
 fullSubject base prefixes (S (Short a)) = noRBracket base++noLBracket a 
 
+getPredicateList::String->[(String,String)]->PredicateList->[(String,ObjectList)]
+getPredicateList base prefixes (SinglePredicate (Predicate (Link a)) x)=[(a,x)]
+getPredicateList base prefixes (SinglePredicate (Pred (Notation (Literal a)(Literal b) ))x)=[(matchPrefix prefixes a ++ b++">",x)]
+getPredicateList base prefixes (SinglePredicate (P (Short a)) x)=[(noRBracket base ++ noLBracket a,x)]
+getPredicateList base prefixes (MultiplePredicates a b)= getPredicateList base prefixes a ++ getPredicateList base prefixes b
+
+getObjectList:: String-> [(String,String)] -> ObjectList -> [String]
+getObjectList base prefixes (SingleObject (ObjectLink (Link a)))=[show a]
+getObjectList base prefixes (SingleObject (ObjectString (Literal a)) ) =[a] 
+getObjectList base prefixes (SingleObject (ObjectBool a)) = [show a]
+getObjectList base prefixes (SingleObject (ObjectInt a))=[show a]
+getObjectList base prefixes (SingleObject (ObjectShort (Short a)))=[(noRBracket base ++ noLBracket a)]
+getObjectList base prefixes (SingleObject (ObjectNotation (Notation (Literal a) (Literal b))))= [(matchPrefix prefixes a ++ b++">")]
+getObjectList base prefixes (MultipleObjects a b)=getObjectList base prefixes a++getObjectList base prefixes b
+
 matchPrefix::[(String,String)]->String->String
+matchPrefix [] b=[]
 matchPrefix (a:as) b | (fst a)==b = noRBracket (snd a)
                      | otherwise = matchPrefix as b
 
@@ -148,14 +171,16 @@ noRBracket (a:as) | a=='>' =noRBracket as
 main = do
      contents <- readFile "test.ttl"
      let tokens = alexScanTokens contents
+     print tokens
      let result = parseCalc tokens
      let base = getBase result
      let prefixes=getPrefixes result base
      let triplets =getTriplets result
      let subjects = map (getSubjects base prefixes) triplets
-     print result
-     print "===================="
-     print subjects
+     let predicates = [getPredicateList base prefixes (snd a)|a<-subjects]
+     let objects = [[getObjectList base prefixes (snd b)|b<-a]|a<-predicates]
+     print objects
+
 } 
 
 

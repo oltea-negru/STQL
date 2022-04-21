@@ -7,29 +7,19 @@ import System.Environment
 %wrapper "posn"   
 $letters = [a-zA-Z] 
 $number = [0-9]
-$mix =[0-9a-zA-Z]
+$mix =[0-9a-zA-Z\#]
 
 tokens :-
 $white+                                                                   ; 
   \#.*                                                                    ; 
   "<""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?">"  { \p s -> TokenURI p s}
-  "<"$mix+\/?">"                                             {\p s ->TokenShort p s}
-  \(                                                         {\p s -> TokenLBrack p}
-  \)                                                         {\p s -> TokenRBrack p}
-  \.                                                         { \p s -> TokenDot p }
-  \,                                                         { \p s -> TokenComma p }    
-  \;                                                         { \p s -> TokenSemiColon p }
-  \:                                                         { \p s -> TokenColon p }
-  \"                                                         { \p s -> TokenQuote p }
+  \""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?\"    { \p s -> TokenURIValue p s}
+  \"$letters+".ttl"\"                                        { \p s -> TokenFile p s} 
+  "<"$mix+\/?($mix+\/?)*">"                             { \p s -> TokenShort p s}
   "@base"                                                    { \p s -> TokenBase p } 
   "@prefix"                                                  { \p s -> TokenPrefix p } 
-  \<                                                         { \p s -> TokenLess p}
-  \>                                                         { \p s -> TokenGreater p}
-  \<\=                                                       { \p s -> TokenLessEq p}
-  \>\=                                                       { \p s -> TokenGreaterEq p}
-  $number+                                                   { \p s -> TokenInt p (read s) }
-  "true"                                                     { \p s -> TokenTrue p  s}
-  "false"                                                    { \p s -> TokenFalse p  s}
+  "true"                                                     { \p s -> TokenTrue p (read "True")}
+  "false"                                                    { \p s -> TokenFalse p (read "False")}
   PRINT                                                      { \p s -> TokenPrint p}
   WHERE                                                      { \p s -> TokenWhere p}
   UNION                                                      { \p s -> TokenUnion p}
@@ -44,10 +34,22 @@ $white+                                                                   ;
   DELETE                                                     { \p s -> TokenDelete p}
   RESTRICT                                                   { \p s -> TokenRestrict p}  
   GET                                                        { \p s -> TokenGet p}
+  \-?$number+                                            { \p s -> TokenInt p (read s) }
+  \+?$number+                                            { \p s -> TokenInt p (read (drop 1 s)) }
+  \"$mix+\"                                                  { \p s -> TokenLiteral p s }
+  $mix+                                                      { \p s -> TokenLiteral p s }
+  \(                                                         { \p s -> TokenLBrack p}
+  \)                                                         { \p s -> TokenRBrack p}
+  \.                                                         { \p s -> TokenDot p }
+  \,                                                         { \p s -> TokenComma p }    
+  \;                                                         { \p s -> TokenSemiColon p }
+  \:                                                         { \p s -> TokenColon p }
+  \"                                                         { \p s -> TokenQuote p }
+  \<                                                         { \p s -> TokenLess p}
+  \>                                                         { \p s -> TokenGreater p}
+  \<\=                                                       { \p s -> TokenLessEq p}
+  \>\=                                                       { \p s -> TokenGreaterEq p}
   \=                                                         { \p s -> TokenEquals p }
-  \"$letters+".ttl"\"                                        { \p s -> TokenFile p s}
-  \""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?\"    { \p s -> TokenURIValue p s} 
-  [\+\-]?$mix+                                            { \p s -> TokenLiteral p s } 
 
 { 
 
@@ -78,20 +80,18 @@ data Token =
   TokenOr AlexPosn                |
   TokenFrom AlexPosn              |
   TokenEquals AlexPosn            |
-  TokenSelect AlexPosn            |
   TokenNot AlexPosn               |
   TokenAdd AlexPosn               |
   TokenDelete AlexPosn            |
   TokenChange AlexPosn            | 
   TokenRestrict AlexPosn          |
-  TokenSort AlexPosn              |
   TokenGet AlexPosn               |
   TokenURIValue AlexPosn String   |
   TokenFile AlexPosn String       |
   TokenLBrack AlexPosn            |
   TokenRBrack AlexPosn            |
-  TokenTrue AlexPosn String              |
-  TokenFalse AlexPosn String
+  TokenTrue AlexPosn Bool         |
+  TokenFalse AlexPosn Bool
   deriving (Eq, Show)
 
 tokenPosn :: Token -> String
@@ -121,7 +121,6 @@ tokenPosn (TokenAdd (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenChange (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenDelete (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenRestrict (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenSort (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenGet (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenLessEq (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenGreaterEq (AlexPn _ x y)) = show  x ++":"++show y
@@ -131,9 +130,7 @@ tokenPosn (TokenLBrack (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenRBrack (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenTrue (AlexPn _ x y)s) = show  x ++":"++show y
 tokenPosn (TokenFalse (AlexPn _ x y)s) = show  x ++":"++show y
-tokenPosn (TokenSelect (AlexPn _ x y)) = show  x ++":"++show y
-
-
+tokenPosn (TokenDot (AlexPn _ x y)) = show  x ++":"++show y
 
 -- main = do
 --     file<- getArgs
