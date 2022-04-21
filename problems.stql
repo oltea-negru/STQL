@@ -1,2 +1,16 @@
 
-PRINT FROM "goo.ttl" WHERE SUB = "http://www.cw.org/#problem2" AND OBJ = true
+^^problem 1:
+PRINT FROM (UNION FROM "foo" "bar")
+
+^^problem 2:
+PRINT FROM "foo" WHERE SUB = "http://www.cw.org/#problem2" AND OBJ = true
+
+^^problem 3:
+PRINT FROM "foo" WHERE PRED = "http://www.cw.org/problem3/#predicate1" OR "http://www.cw.org/problem3/#predicate2" OR "http://www.cw.org/problem3/#predicate3" 
+
+^^problem 4:
+PRINT FROM (PRINT FROM "foo" WHERE OBJ = SUB FROM "bar") (PRINT FROM "bar" WHERE OBJ = SUB FROM "foo")
+
+
+^^problem 5:
+PRINT FROM "foo" WHERE OBJ < 0 AND OBJ > 99

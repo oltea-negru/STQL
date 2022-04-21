@@ -108,10 +108,10 @@ data File = File String | Union File File  deriving (Show,Eq)
 parseError :: [Token] -> a
 parseError (b:bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++" "++ show b
 
-main = do
-     contents <- readFile "test.ttl"
-     let tokens = alexScanTokens contents
-     let result = parseCalc tokens
-     print result
+-- main = do
+--      contents <- readFile "test.ttl"
+--      let tokens = alexScanTokens contents
+--      let result = parseCalc tokens
+--      print result
 
 }

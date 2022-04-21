@@ -1,1 +1,14 @@
-PRINT FROM "foo.ttl" WHERE OBJ < 0 AND OBJ > 99
+@base <http://www.example.org/> .
+@prefix foo : <http://www.exampleprefix.org/> .
+@prefix bar : <exampleBasePrefix/> .
+<http://www.exampleabsolute.org/exSub1>
+<http://www.exampleabsolute.org/exPred1>
+<http://www.exampleabsolute.org/obj1> .
+<exBaseSub> foo:exPred2 <exObj2> .
+
+@prefix zar : <exampleBasePrefix/> .
+@prefix goo : <http://www.exampleprefix.org/> .
+@prefix mar : <exampleBasePrefix/> .
+@prefix ioo : <http://www.exampleprefix.org/> .
+
+bar:exSub2 <exPred3> "LiteralValue" .

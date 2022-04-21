@@ -47,8 +47,7 @@ $white+                                                                   ;
   \=                                                         { \p s -> TokenEquals p }
   \"$letters+".ttl"\"                                        { \p s -> TokenFile p s}
   \""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?\"    { \p s -> TokenURIValue p s} 
-  [\+\-]?$number+                                            { \p s -> TokenLiteral p s } 
-  $letters+                                                  { \p s -> TokenLiteral p s } 
+  [\+\-]?$mix+                                            { \p s -> TokenLiteral p s } 
 
 { 
 
