@@ -1,0 +1,5 @@
+<http://www.cw.org/A> <http://www.cw.org/B> -1 .
+<http://www.cw.org/A> <http://www.cw.org/BB> 1 .
+<http://www.cw.org/A> <http://www.cw.org/BB> 4 .
+<http://www.cw.org/C> <http://www.cw.org/D> 0 .
+<http://www.cw.org/E> <http://www.cw.org/G> 1 .

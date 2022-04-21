@@ -2,6 +2,7 @@
 module Parser where 
 import Lexer 
 import Data.Typeable
+import Data.List
 }
 
 %name parseCalc 
@@ -165,13 +166,12 @@ noRBracket []=[]
 noRBracket (a:as) | a=='>' =noRBracket as
                   | otherwise = a: noRBracket as
 
-
-
+stuff::((String,String),String)->String
+stuff ((a,b),c)=a++" "++b++" "++c++" ."
 
 main = do
      contents <- readFile "test.ttl"
      let tokens = alexScanTokens contents
-     print tokens
      let result = parseCalc tokens
      let base = getBase result
      let prefixes=getPrefixes result base
@@ -179,8 +179,15 @@ main = do
      let subjects = map (getSubjects base prefixes) triplets
      let predicates = [getPredicateList base prefixes (snd a)|a<-subjects]
      let objects = [[getObjectList base prefixes (snd b)|b<-a]|a<-predicates]
-     print objects
-
+     let xs = map fst subjects
+     let ys = map (map fst) predicates
+     let zs = concat objects
+     let haha=zip xs ys
+     let pur=[(bn,v)|(bn,x)<-haha, v<-x]
+     let nee=[(jk,ko)|(jk,op)<-zip pur zs, ko<-op]
+     let wow= map stuff nee
+     let final = intercalate "\n" wow
+     writeFile "out.txt" final
 } 
 
 

@@ -1,7 +1,4 @@
 @base <http://www.cw.org/> .
-<testSubA> <testPredA> -1 .
-<testSubB> <testPredA> 0 .
-<testSubC> <testPredA> 1 .
-<testSubA> <testPredB> 98 .
-<testSubB> <testPredB> 99 .
-<testSubC> <testPredB> 100 .
+<A> <B> -1 ; <BB> 1,4.
+<C> <D> 0 .
+<E> <G> 1 .
