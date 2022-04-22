@@ -172,7 +172,7 @@ noRBracket (a:as) | a=='>' =noRBracket as
                   | otherwise = a: noRBracket as
 
 
-makeFinalTriplet'':: ((String,String),String) -> (String, String, String)
+makeFinalTriplet'':: ((String, String), String)-> (String, String, String)
 makeFinalTriplet'' ((a,b),c)  | c=="True" ||  c== "False" = (a,b, map toLower ( c))
                             | otherwise = (a,b,  c)
 
@@ -192,11 +192,20 @@ getThird (a,b,c) = c
 getSubPred:: (String,String,Object)-> (String,String)
 getSubPred (a,b,c) = (a,b)
 
-obToString:: Object -> String
-obToString (ObjectLink (Link a))= a
-obToString (ObjectString (Literal a)) =a
-obToString (ObjectBool a) = show a
-obToString (ObjectInt a) =show a
+obToString:: [(String,String)] -> String -> Object -> String
+obToString prefixes base (ObjectLink (Link a))= a
+obToString prefixes base (ObjectLink (Short a))= (noRBracket base ++ noLBracket a)
+obToString prefixes base (ObjectLink (Notation (Literal a) (Literal b))) = (matchPrefix prefixes a ++ b++">")
+obToString prefixes base (ObjectString (Literal a)) =a
+obToString prefixes base (ObjectBool a) = show a
+obToString prefixes base (ObjectInt a) =show a
+
+
+obToStringHelper:: [(String,String)] -> String -> [Object] -> [String]
+obToStringHelper prefixes base [] = []
+obToStringHelper prefixes base (x:xs) = (obToString prefixes base x :obToStringHelper prefixes base xs)
+
+
 
 
 main = do
@@ -215,8 +224,9 @@ main = do
      let list1=[(var,v)|(var,var2)<-zip subList predList, v<-var2]
      let list2=[(var,v)|(var,var2)<-zip list1 obList2, v<-var2]
      let subPredObTupleList= map makeTriplet list2
-     let sortedsubPredObTupleList = sort (subPredObTupleList)
-     let final = zip (map getSubPred sortedsubPredObTupleList) (map obToString (map getThird sortedsubPredObTupleList))
+     let sortedsubPredObTupleList = sort (subPredObTupleList) --string,string,ob
+     let final = zip (map getSubPred sortedsubPredObTupleList) (obToStringHelper prefixes base (map getThird sortedsubPredObTupleList))
+     --let final = zip (map getSubPred sortedsubPredObTupleList) (map (\a -> obToString (prefixes) (base)) (map getThird sortedsubPredObTupleList))
      let strings = [ a++" "++b++" "++c++" ."| (a,b,c)<- map makeFinalTriplet'' final]
      let output= intercalate "\n" strings
      writeFile "out.txt" output 
