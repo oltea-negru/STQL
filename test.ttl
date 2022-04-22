@@ -1,15 +1,11 @@
-<<<<<<< HEAD
-
 <http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectA> . 
-
-
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectA> . 
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectA> . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> "lit" . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectC> . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> 50 . 
 <http://www.cw.org/subjectA> <http://www.cw.org/predicateA> true. 
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> 10 . 
-=======
-@base <http://www.cw.org/> .
-<A> <B> false ; <BB> 1,4.
-<C> <D> 0 .
-<E> <G> 1 .
->>>>>>> f0b0a7c53bd711685b96a4dcfdd3f4a085196f21
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> 45 . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectD> . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectB> . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> -30 . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> false . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> "dkjjsdhjdsjkdsjk" . 

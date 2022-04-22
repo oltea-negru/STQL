@@ -44,8 +44,10 @@ import System.IO
 %left AND OR '='
 %%
 
-Exp: PRINT FROM File Seq               { Print $3 $4}
-     | PRINT FROM File                 { SimplePrint $3}
+Exp: PRINT FROM File  { SimplePrint $3}
+   | PRINT FROM UNION File { UnionPrint $4}
+   | Exp ';'          { End $1}
+   | Exp Seq ';'      { Seq $1 $2}       
   
 Seq: WHERE Cond                           { Where $2}  
    | GET Number                           { Get $2}
@@ -73,16 +75,19 @@ Link: URI {$1}
 Lit: lit {$1}
 Number: int {$1}
 
-File:  UNION File File                { Union $2 $3} 
-    |  file                           { File $1}
+File:   file                     { OneFile $1}
+    |   file File                { MoreFiles  $1 $2} 
 
 Bool: TRUE   { $1}
     | FALSE  { $1}   
 
 { 
 
-data Expr=  Print File Expr 
-          | SimplePrint File
+data Expr=  Print Files Expr 
+          | End Expr
+          | Seq Expr Expr
+          | SimplePrint Files
+          | UnionPrint Files
           | Where Cond
           | Get Int
           | Add String 
@@ -102,7 +107,21 @@ data Cond = Less Int Int
           | Or Cond Cond 
           deriving (Show, Eq)
 
-data File = File String | Union File File  deriving (Show,Eq)
+data Files = OneFile String | MoreFiles String Files  deriving (Show,Eq)
+
+getFiles::Files->[String]
+getFiles (OneFile a) =[a]
+getFiles (MoreFiles a b)=[a] ++ getFiles b
+
+getShit::Expr->[String]
+getShit (Print a b)=getFiles a
+getShit (SimplePrint a)=getFiles a
+getShit (Where a)=[]
+getShit (Get a)=[]
+getShit (Add a)=[]
+getShit (Delete a)=[]
+
+
 
 parseError :: [Token] -> a
 parseError (b:bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++" "++ show b
@@ -111,6 +130,7 @@ main = do
      contents <- readFile "test.ttl"
      let tokens = alexScanTokens contents
      let result = parseCalc tokens
-     print result
+     let output = getShit result
+     print output
 
 }
