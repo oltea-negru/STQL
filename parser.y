@@ -3,7 +3,10 @@ module Parser where
 import Lexer 
 import Data.Typeable
 import Data.List
+<<<<<<< HEAD
 import Data.Function (on)
+=======
+>>>>>>> f0b0a7c53bd711685b96a4dcfdd3f4a085196f21
 import Data.Char
 }
 
@@ -168,6 +171,7 @@ noRBracket []=[]
 noRBracket (a:as) | a=='>' =noRBracket as
                   | otherwise = a: noRBracket as
 
+<<<<<<< HEAD
 makeTriplet::((String,String),String)->(String, String, String)
 makeTriplet ((a,b),c) | c=="True" || c== "False" = (a,b, map toLower c)
                 | otherwise = (a,b,c)
@@ -183,6 +187,11 @@ getThird (a,b,c) = c
 
 -- sortObjects::([S])
 
+=======
+stuff::((String,String),String)->String
+stuff((a,b),c) | (c == "True") || (c=="False") = a++" "++b++" "++ (map toLower c)++" ."
+               | otherwise = a++" "++b++" "++c++" ."
+>>>>>>> f0b0a7c53bd711685b96a4dcfdd3f4a085196f21
 
 main = do
      contents <- readFile "test.ttl"

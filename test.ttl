@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 <http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectA> . 
 
@@ -6,3 +7,9 @@
 <http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectA> . 
 <http://www.cw.org/subjectA> <http://www.cw.org/predicateA> true. 
 <http://www.cw.org/subjectA> <http://www.cw.org/predicateA> 10 . 
+=======
+@base <http://www.cw.org/> .
+<A> <B> false ; <BB> 1,4.
+<C> <D> 0 .
+<E> <G> 1 .
+>>>>>>> f0b0a7c53bd711685b96a4dcfdd3f4a085196f21

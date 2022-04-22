@@ -6,3 +6,4 @@ lexer.hs
 parser.hs
 problems.stql
 SQTL.hs
+out.txt

@@ -1,3 +1,11 @@
+<<<<<<< HEAD
 <http://www.cw.org/subjectA> <http://www.cw.org/predicateA> 10 .
 <http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectA> .
 <http://www.cw.org/subjectA> <http://www.cw.org/predicateA> true .
+=======
+<http://www.cw.org/A> <http://www.cw.org/B> false .
+<http://www.cw.org/A> <http://www.cw.org/BB> 1 .
+<http://www.cw.org/A> <http://www.cw.org/BB> 4 .
+<http://www.cw.org/C> <http://www.cw.org/D> 0 .
+<http://www.cw.org/E> <http://www.cw.org/G> 1 .
+>>>>>>> f0b0a7c53bd711685b96a4dcfdd3f4a085196f21
