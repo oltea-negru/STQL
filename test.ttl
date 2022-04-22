@@ -1,4 +1,8 @@
-@base <http://www.cw.org/> .
-<A> <B> -1 ; <BB> 1,4.
-<C> <D> 0 .
-<E> <G> 1 .
+
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectA> . 
+
+
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectA> . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectA> . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> true. 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> 10 . 

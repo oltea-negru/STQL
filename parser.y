@@ -3,6 +3,8 @@ module Parser where
 import Lexer 
 import Data.Typeable
 import Data.List
+import Data.Function (on)
+import Data.Char
 }
 
 %name parseCalc 
@@ -46,9 +48,9 @@ Predicate:  Link                                 { Predicate $1 }
 ObjList:    Object                               { SingleObject $1 }
        |    ObjList ',' ObjList                  { MultipleObjects $1 $3 }
 
-Object:     Lit                                  { ObjectString $1 }
+Object:     Link                                 { ObjectLink $1 } 
+       |    Lit                                  { ObjectString $1 }
        |    int                                  { ObjectInt $1 }
-       |    Link                                 { ObjectLink $1 }
        |    Short                                { ObjectShort $1 }
        |    Notation                             { ObjectNotation $1}
        |    true                                 { ObjectBool $1}
@@ -87,12 +89,12 @@ data Predicate = Predicate Link
 data ObjectList = SingleObject Object  
                 | MultipleObjects ObjectList ObjectList    deriving (Show,Eq)
 
-data Object = ObjectString Literal 
-            | ObjectBool Bool 
-            | ObjectInt Int
-            | ObjectLink Link
-            | ObjectShort Short 
-            | ObjectNotation Notation deriving (Show,Eq)
+data Object = ObjectLink Link
+              | ObjectShort Short 
+              | ObjectNotation Notation
+              | ObjectInt Int
+              | ObjectBool Bool 
+              | ObjectString Literal   deriving (Show,Eq)
 
 data Link = Link String deriving (Show, Eq)
 data Short = Short String deriving (Show, Eq)
@@ -140,7 +142,7 @@ getPredicateList base prefixes (SinglePredicate (P (Short a)) x)=[(noRBracket ba
 getPredicateList base prefixes (MultiplePredicates a b)= getPredicateList base prefixes a ++ getPredicateList base prefixes b
 
 getObjectList:: String-> [(String,String)] -> ObjectList -> [String]
-getObjectList base prefixes (SingleObject (ObjectLink (Link a)))=[show a]
+getObjectList base prefixes (SingleObject (ObjectLink (Link a)))=[ a]
 getObjectList base prefixes (SingleObject (ObjectString (Literal a)) ) =[a] 
 getObjectList base prefixes (SingleObject (ObjectBool a)) = [show a]
 getObjectList base prefixes (SingleObject (ObjectInt a))=[show a]
@@ -166,8 +168,21 @@ noRBracket []=[]
 noRBracket (a:as) | a=='>' =noRBracket as
                   | otherwise = a: noRBracket as
 
-stuff::((String,String),String)->String
-stuff ((a,b),c)=a++" "++b++" "++c++" ."
+makeTriplet::((String,String),String)->(String, String, String)
+makeTriplet ((a,b),c) | c=="True" || c== "False" = (a,b, map toLower c)
+                | otherwise = (a,b,c)
+
+getFirst:: (String,String,String)->String
+getFirst (a,b,c) = a
+
+getSecond::  (String,String,String)->String
+getSecond (a,b,c) = b
+
+getThird::  (String,String,String)->String
+getThird (a,b,c) = c
+
+-- sortObjects::([S])
+
 
 main = do
      contents <- readFile "test.ttl"
@@ -182,12 +197,13 @@ main = do
      let xs = map fst subjects
      let ys = map (map fst) predicates
      let zs = concat objects
-     let haha=zip xs ys
-     let pur=[(bn,v)|(bn,x)<-haha, v<-x]
-     let nee=[(jk,ko)|(jk,op)<-zip pur zs, ko<-op]
-     let wow= map stuff nee
-     let final = intercalate "\n" wow
-     writeFile "out.txt" final
+     let list1=[(var,v)|(var,var2)<-zip xs ys, v<-var2]
+     let list2=[(var,v)|(var,var2)<-zip list1 zs, v<-var2]
+     let list3= map makeTriplet list2
+     let final = nub $ sort list3
+     let strings = [ a++" "++b++" "++c++" ."|(a,b,c)<-final]
+     let output= intercalate "\n" strings
+     writeFile "out.txt" output
 } 
 
 

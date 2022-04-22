@@ -35,11 +35,10 @@ import System.IO
   ADD                  { TokenAdd p}
   DELETE               { TokenDelete p}
   RESTRICT             { TokenRestrict p}  
-  SORT                 { TokenSort p}
   GET                  { TokenGet p}
   URI                  { TokenURIValue p $$}
   file                 { TokenFile p $$}
-  SELECT               { TokenSelect p}
+ 
 
 %right '<' '<=' '>=' '>'
 %left AND OR '='
@@ -66,7 +65,7 @@ Equal: Number '=' Number                  { EqInt $1 $3}
      | SUB '=' Link                       {EqString $1 $3}
      | PRED '=' Link                      {EqString $1 $3}
      | OBJ '=' Link                       {EqString $1 $3}
-     | OBJ '=' Bool                       {EqString $1 $3}
+     | OBJ '=' Bool                       {EqStringBool $1 $3}
      | OBJ '=' Lit                        {EqString $1 $3}
      | OBJ '=' Number                     {EqStringInt $1 $3}
 
@@ -108,10 +107,10 @@ data File = File String | Union File File  deriving (Show,Eq)
 parseError :: [Token] -> a
 parseError (b:bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++" "++ show b
 
--- main = do
---      contents <- readFile "test.ttl"
---      let tokens = alexScanTokens contents
---      let result = parseCalc tokens
---      print result
+main = do
+     contents <- readFile "test.ttl"
+     let tokens = alexScanTokens contents
+     let result = parseCalc tokens
+     print result
 
 }

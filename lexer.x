@@ -12,7 +12,8 @@ $mix =[0-9a-zA-Z\#]
 tokens :-
 $white+                                                                   ; 
   \#.*                                                                    ; 
-  "<""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?">"  { \p s -> TokenURI p s}
+  \/\*(\n|.*)*\*\/                                                         ;
+"<""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?">"  { \p s -> TokenURI p s}
   \""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?\"    { \p s -> TokenURIValue p s}
   \"$letters+".ttl"\"                                        { \p s -> TokenFile p s} 
   "<"$mix+\/?($mix+\/?)*">"                             { \p s -> TokenShort p s}
@@ -132,9 +133,4 @@ tokenPosn (TokenTrue (AlexPn _ x y)s) = show  x ++":"++show y
 tokenPosn (TokenFalse (AlexPn _ x y)s) = show  x ++":"++show y
 tokenPosn (TokenDot (AlexPn _ x y)) = show  x ++":"++show y
 
--- main = do
---     file<- getArgs
---     contents <- readFile $ head file 
---     let list = alexScanTokens contents
---     print list
 }
