@@ -1,11 +1,11 @@
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectA> . 
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> "lit" . 
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectC> . 
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> 50 . 
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> true. 
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> 45 . 
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectD> . 
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectB> . 
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> -30 . 
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> false . 
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> "dkjjsdhjdsjkdsjk" . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateB> <http://www.cw.org/objectA> . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateB> "lit" . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateB> <http://www.cw.org/objectC> . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateB> 50 . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateB> true. 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateB> 45 . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateB> <http://www.cw.org/objectD> . 
+<http://www.cw.org/subjectZ> <http://www.cw.org/predicateA> <http://www.cw.org/objectB> . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateB> -30 . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateC> false . 
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateB> "dkjjsdhjdsjkdsjk" . 

@@ -97,9 +97,6 @@ sortObjs (ObjectBool ob1) (ObjectString ob2) = LT
 sortObjs (ObjectBool ob1) _ = GT
 sortObjs _ _ = GT
 
-getObjects:: String-> [(String,String)] -> ObjectList -> [Object]
-getObjects base prefixes (SingleObject a)=[ a]
-getObjects base prefixes (MultipleObjects a b)=getObjects base prefixes a++getObjects base prefixes b
 
 getBase :: Exp -> String
 getBase (TheBase (Link a)) = a
@@ -152,6 +149,10 @@ getObjectList base prefixes (SingleObject (ObjectBool a)) = [show a]
 getObjectList base prefixes (SingleObject (ObjectInt a))=[show a]
 getObjectList base prefixes (MultipleObjects a b)=getObjectList base prefixes a++getObjectList base prefixes b
 
+getObjects:: String-> [(String,String)] -> ObjectList -> [Object]
+getObjects base prefixes (SingleObject a)=[ a]
+getObjects base prefixes (MultipleObjects a b)=getObjects base prefixes a++getObjects base prefixes b
+
 matchPrefix::[(String,String)]->String->String
 matchPrefix [] b=[]
 matchPrefix (a:as) b | (fst a)==b = noRBracket (snd a)
@@ -170,66 +171,55 @@ noRBracket []=[]
 noRBracket (a:as) | a=='>' =noRBracket as
                   | otherwise = a: noRBracket as
 
-makeTriplet::((String,String),String)->(String, String, String)
-makeTriplet ((a,b),c) | c=="True" || c== "False" = (a,b, map toLower c)
-                | otherwise = (a,b,c)
 
-getFirst:: (String,String,String)->String
+makeFinalTriplet'':: ((String,String),String) -> (String, String, String)
+makeFinalTriplet'' ((a,b),c)  | c=="True" ||  c== "False" = (a,b, map toLower ( c))
+                            | otherwise = (a,b,  c)
+
+
+makeTriplet::((String,String),Object)->(String, String, Object)
+makeTriplet ((a,b),c) = (a,b,c)
+
+getFirst:: (String,String,Object)->String
 getFirst (a,b,c) = a
 
 getSecond::  (String,String,String)->String
 getSecond (a,b,c) = b
 
-getThird::  (String,String,String)->String
+getThird::  (String,String,Object)->Object
 getThird (a,b,c) = c
 
+getSubPred:: (String,String,Object)-> (String,String)
+getSubPred (a,b,c) = (a,b)
 
+obToString:: Object -> String
+obToString (ObjectLink (Link a))= a
+obToString (ObjectString (Literal a)) =a
+obToString (ObjectBool a) = show a
+obToString (ObjectInt a) =show a
 
--- main = do
---      contents <- readFile "test.ttl"
---      let tokens = alexScanTokens contents
---      let result = parseCalc tokens
---      let base = getBase result
---      let prefixes=getPrefixes result base
---      let triplets =getTriplets result
---      let subjects = map (getSubjects base prefixes) triplets
---      let predicates = [getPredicateList base prefixes (snd a)|a<-subjects]
---      let objects = [[getObjectList base prefixes (snd b)|b<-a]|a<-predicates]
---      let xs = map fst subjects
---      let ys = map (map fst) predicates
---      let zs = concat objects
---      let list1=[(var,v)|(var,var2)<-zip xs ys, v<-var2]
---      let list2=[(var,v)|(var,var2)<-zip list1 zs, v<-var2]
---      let list3= map makeTriplet list2
---      let final = nub $ sort list3
---      let strings = [ a++" "++b++" "++c++" ."|(a,b,c)<-final]
---      let output= intercalate "\n" strings
---      writeFile "out.txt" output
 
 main = do
      contents <- readFile "test.ttl"
      let tokens = alexScanTokens contents
      let result = parseCalc tokens
      let base = getBase result
-     let prefixes=getPrefixes result base
+     let prefixes =getPrefixes result base
      let triplets =getTriplets result
-     let subjects = map (getSubjects base prefixes) triplets
-     let predicates = [getPredicateList base prefixes (snd a)|a<-subjects]
-     let objects = [[getObjectList base prefixes (snd b)|b<-a]|a<-predicates]
-     let o =  [[getObjects base prefixes (snd b)|b<-a]|a<-predicates]
-     let xs = map fst subjects
-     let ys = map (map fst) predicates
-     let zs = (concat objects)
-     let rs = (concat zs)
-     let list1=[(var,v)|(var,var2)<-zip xs ys, v<-var2]
-     let list2=[(var,v)|(var,var2)<-zip list1 zs, v<-var2]
-     let list3= map makeTriplet list2
-     let final = nub $ sortBy sortObjs (concat (concat o))
-     --let strings = [ a++" "++b++" "++c++" ."|(a,b,c)<-final]
-     --let output= intercalate "\n" strings
-     --writeFile "out.txt" final
-     print final
- 
+     let subjPredList = map (getSubjects base prefixes) triplets
+     let predObjList = [getPredicateList base prefixes (snd a)|a<-subjPredList]
+     let obList1 =  [[getObjects base prefixes (snd b)|b<-a]|a<-predObjList]
+     let subList = map fst subjPredList
+     let predList = map (map fst) predObjList
+     let obList2 = (concat obList1)
+     let list1=[(var,v)|(var,var2)<-zip subList predList, v<-var2]
+     let list2=[(var,v)|(var,var2)<-zip list1 obList2, v<-var2]
+     let subPredObTupleList= map makeTriplet list2
+     let sortedsubPredObTupleList = sort (subPredObTupleList)
+     let final = zip (map getSubPred sortedsubPredObTupleList) (map obToString (map getThird sortedsubPredObTupleList))
+     let strings = [ a++" "++b++" "++c++" ."| (a,b,c)<- map makeFinalTriplet'' final]
+     let output= intercalate "\n" strings
+     writeFile "out.txt" output 
 } 
 
 
