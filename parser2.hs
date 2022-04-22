@@ -570,28 +570,39 @@ data Cond = Less Int Int
 
 data Files = OneFile String | MoreFiles String Files  deriving (Show,Eq)
 
-getFiles::Files->[String]
-getFiles (OneFile a) =[a]
-getFiles (MoreFiles a b)=[a] ++ getFiles b
+accessFiles::Files->[String]
+accessFiles (OneFile a) =[a]
+accessFiles (MoreFiles a b)=[a] ++ accessFiles b
 
-getShit::Expr->[String]
-getShit (Print a b)=getFiles a
-getShit (SimplePrint a)=getFiles a
-getShit (Where a)=[]
-getShit (Get a)=[]
-getShit (Add a)=[]
-getShit (Delete a)=[]
+getFiles::Expr->[String]
+getFiles (Print a b)=accessFiles a
+getFiles (SimplePrint a)=accessFiles a
+getFiles (Where a)=[]
+getFiles (Get a)=[]
+getFiles (Add a)=[]
+getFiles (Delete a)=[]
+getFiles (UnionPrint a)=accessFiles a
+getFiles (End a)=getFiles a
+getFiles (Seq a b)=getFiles a++ getFiles b
 
-
+fuck::[(String)]->IO ()
+fuck []= return ()
+fuck (x:xs) = do 
+            a<-readFile x
+            appendFile "foo.ttl" a
+            fuck xs
 
 parseError :: [Token] -> a
 parseError (b:bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++" "++ show b
 
+main::IO()
 main = do
      contents <- readFile "test.ttl"
      let tokens = alexScanTokens contents
      let result = parseCalc tokens
-     let output = getShit result
+     let output = getFiles result
+     fuck $ drop 1 output
+       
      print output
 {-# LINE 1 "templates/GenericTemplate.hs" #-}
 -- $Id: GenericTemplate.hs,v 1.26 2005/01/14 14:47:22 simonmar Exp $
