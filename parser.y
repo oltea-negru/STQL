@@ -3,6 +3,7 @@ module Parser where
 import Lexer 
 import Data.Typeable
 import Data.List
+import Data.Char
 }
 
 %name parseCalc 
@@ -167,7 +168,8 @@ noRBracket (a:as) | a=='>' =noRBracket as
                   | otherwise = a: noRBracket as
 
 stuff::((String,String),String)->String
-stuff ((a,b),c)=a++" "++b++" "++c++" ."
+stuff((a,b),c) | (c == "True") || (c=="False") = a++" "++b++" "++ (map toLower c)++" ."
+               | otherwise = a++" "++b++" "++c++" ."
 
 main = do
      contents <- readFile "test.ttl"
