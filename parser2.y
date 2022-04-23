@@ -3,6 +3,8 @@ module LangParser where
 import Lexer
 import System.Environment
 import System.IO
+import Control.Monad
+import Data.List
 }
 
 %name parseCalc 
@@ -124,25 +126,37 @@ getFiles (UnionPrint a)=accessFiles a
 getFiles (End a)=getFiles a
 getFiles (Seq a b)=getFiles a++ getFiles b
 
-fuck::[(String)]->IO ()
-fuck []= return ()
-fuck (x:xs) = do 
+unionFiles::[String]->IO ()
+unionFiles []= return ()
+unionFiles (x:xs) = do 
             a<-readFile x
-            appendFile "foo.ttl" a
-            fuck xs
+            appendFile "more.txt" "\n"
+            appendFile "more.txt" a
+            b<- readFile "more.txt"
+            let c=lines b
+            let d=nub c
+            sequence (map (writeFile "more.txt") d )
+            unionFiles xs
 
 parseError :: [Token] -> a
 parseError (b:bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++" "++ show b
 
-main::IO()
+printContents file = do 
+                        if(length file==1)
+                        -- if its only one file it will write its contents in single.txt
+                            then do 
+                            l<-readFile $ file!!0
+                            appendFile "one.txt" l
+                        -- if there are multiple files it will write all of their contents in more.txt
+                        else do
+                            unionFiles file
+
+
 main = do
      contents <- readFile "test.ttl"
      let tokens = alexScanTokens contents
      let result = parseCalc tokens
      let output = getFiles result
-     fuck $ drop 1 output
-       
-     print output
-
+     printContents output
 
 }
