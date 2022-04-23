@@ -209,7 +209,7 @@ obToStringHelper prefixes base (x:xs) = (obToString prefixes base x :obToStringH
 
 
 main = do
-     contents <- readFile "test.ttl"
+     contents <- readFile "test.txt"
      let tokens = alexScanTokens contents
      let result = parseCalc tokens
      let base = getBase result
@@ -229,7 +229,7 @@ main = do
      --let final = zip (map getSubPred sortedsubPredObTupleList) (map (\a -> obToString (prefixes) (base)) (map getThird sortedsubPredObTupleList))
      let strings = [ a++" "++b++" "++c++" ."| (a,b,c)<- map makeFinalTriplet'' final]
      let output= intercalate "\n" strings
-     writeFile "out.txt" output 
+     writeFile "test.ttl" output 
 } 
 
 

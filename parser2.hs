@@ -606,6 +606,7 @@ printContents file = do
                         if(length file==1)
                         -- if its only one file it will write its contents in single.txt
                             then do 
+                            writeFile "one.txt" ""
                             l<-readFile $ file!!0
                             appendFile "one.txt" l
                         -- if there are multiple files it will write all of their contents in more.txt
@@ -614,7 +615,7 @@ printContents file = do
 
 
 main = do
-     contents <- readFile "test.ttl"
+     contents <- readFile "language.txt"
      let tokens = alexScanTokens contents
      let result = parseCalc tokens
      let output = getFiles result

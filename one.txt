@@ -1,9 +1,3 @@
 <http://www.cw.org/aa> <http://www.cw.org/b> <http://www.cw.org/r> .
 <http://www.cw.org/aa> <http://www.cw.org/b> <http://www.cw.org/y> .
-<http://www.cw.org/aa> <http://www.cw.org/b> true .<http://www.cw.org/aa> <http://www.cw.org/b> <http://www.cw.org/r> .
-<http://www.cw.org/aa> <http://www.cw.org/b> <http://www.cw.org/y> .
-<http://www.cw.org/aa> <http://www.cw.org/b> true .<http://www.cw.org/aa> <http://www.cw.org/b> <http://www.cw.org/r> .
-<http://www.cw.org/aa> <http://www.cw.org/b> <http://www.cw.org/y> .
-<http://www.cw.org/aa> <http://www.cw.org/b> true .<http://www.cw.org/aa> <http://www.cw.org/b> <http://www.cw.org/r> .
-<http://www.cw.org/aa> <http://www.cw.org/b> <http://www.cw.org/y> .
 <http://www.cw.org/aa> <http://www.cw.org/b> true .
