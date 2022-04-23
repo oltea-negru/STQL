@@ -173,8 +173,8 @@ noRBracket (a:as) | a=='>' =noRBracket as
 
 
 makeFinalTriplet'':: ((String, String), String)-> (String, String, String)
-makeFinalTriplet'' ((a,b),c)  | c=="True" ||  c== "False" = (a,b, map toLower ( c))
-                            | otherwise = (a,b,  c)
+makeFinalTriplet'' ((a,b),c)  =(a,b,c)
+                         
 
 
 makeTriplet::((String,String),Object)->(String, String, Object)
@@ -183,7 +183,7 @@ makeTriplet ((a,b),c) = (a,b,c)
 getFirst:: (String,String,Object)->String
 getFirst (a,b,c) = a
 
-getSecond::  (String,String,String)->String
+getSecond::  (String,String,Object)->String
 getSecond (a,b,c) = b
 
 getThird::  (String,String,Object)->Object

@@ -1,1 +1,11 @@
-PRINT FROM test.ttl WHERE OBJ < 0 AND OBJ > 99;
+PRINT FROM test.ttl WHERE OBJ <51 OR OBJ>11 AND OBJ = <http://www.google.com> AND 5>1;
+
+(s,p,o) if ((satisfies s cond!!0) and (satisfies s cond!!1) and (satisfies s cond!!2))
+where cond =((),(),(\o->o="test",
+                    \o->o>51 or o>11,
+                    \o->o==True))
+
+satisfiesSubj :: Subj -> [(Subj->Bool)] -> Bool
+satisfiesSubj s cond = cond s
+satisfiesSubj :: Pred -> Bool
+satisfiesSubj :: Obj -> Bool

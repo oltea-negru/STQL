@@ -581,48 +581,77 @@ unionFiles::[String]->IO () -- take the content of all files and
 unionFiles []= return ()    -- writes them in "file.txt" (deletes duplicates xo)
 unionFiles (x:xs) = do 
             a<-readFile x
-            appendFile "file.txt" "\n"
             appendFile "file.txt" a
+            appendFile "file.txt" "\n"
             b<- readFile "file.txt"
             let c=lines b
             let d=nub c
             sequence (map (writeFile "file.txt") d )
             unionFiles xs
 
-printContents::[String]->IO()
-printContents file = do 
-                        if(length file==1)
-                        -- if its only one file it will write its contents in single.txt
-                            then do 
-                            writeFile "file.txt" ""
-                            l<-readFile $ file!!0
-                            appendFile "file.txt" l
-                        -- if there are multiple files it will write all of their contents in more.txt
-                        else do
-                            unionFiles file
+printContents::[String]->[(String,String,String)]->IO()
+printContents file constraints = do 
+                                      if(length file==1)
+                                      -- if its only one file it will write its contents in single.txt
+                                          then do 
+                                          writeFile "file.txt" ""
+                                          l<-readFile $ file!!0
+                                          let line=lines l
+                                          let correctOutput=map (respects constraints 0) line 
+                                          print correctOutput
+                                          print $ (makeInt (getThird(constraints!!0)))
+                                       --   appendFile "file.txt" (correctOutput!!0)
+                                      -- if there are multiple files it will write all of their contents in more.txt
+                                      else do
+                                          unionFiles file
 
--- getConditions::Cond->[(String,String,String)]
--- getConditions (Less a b)=[(show a,"<",show b)]
--- getConditions (Greater a b)=[(show a,">",show b)]
--- getConditions (LessOr a b)=[(show a,"<=",show b)]
--- getConditions (GreaterOr a b)=[(show a,">=",show b)]
--- getConditions (EqInt a b)=[(show a,"=",show b)]
--- getConditions (EqString a b)=[(a,"=",b)]
--- getConditions (EqStringInt a b)=[(a,"=",show b)]
--- getConditions (EqStringBool a b)=[(a,"=",show b)]
--- getConditions (And a b)=getConditions a ++[("a","n","d")] ++getConditions b 
--- getConditions (Or a b)=getConditions a ++[("o","r","r")] ++getConditions b 
+respects::[(String,String,String)]->Int->String ->String
+respects constraints index triplet  | (field=="\"OBJ\"") && relation=="<" && (makeInt object)<(makeInt value) = triplet
+                                    | otherwise = "1"
+        where subject = (splitTriplet triplet) !! 0
+              predicate = (splitTriplet triplet) !! 1
+              object = (splitTriplet triplet) !! 2
+              field = getFirst (constraints !! index)
+              relation = getSecond (constraints !! index)
+              value = getThird (constraints !! index)
+              
 
--- findConditions::Expr->[(String,String,String)]
--- findConditions (SimplePrint a)=[]
--- findConditions (UnionPrint a)=[]
--- findConditions (Get a)=[]
--- findConditions (Add a)=[]
--- findConditions (Delete a)=[]
--- findConditions (Where a)=getConditions a
--- findConditions (Print a b)=findConditions b
--- findConditions (End a)=findConditions a
--- findConditions (Seq a b)=findConditions a++findConditions b
+makeInt::String->Int
+makeInt a= read a
+
+splitTriplet::String->[String]
+splitTriplet triplet = words triplet
+
+getFirst:: (String,String,String)->String
+getFirst (a,b,c) = a
+
+getSecond::  (String,String,String)->String
+getSecond (a,b,c) = b
+
+getThird::  (String,String,String)->String
+getThird (a,b,c) = c
+
+getConditions::Cond->[(String,String,String)]
+getConditions (Less a b)=[(show a,"<",show b)]
+getConditions (Greater a b)=[(show a,">",show b)]
+getConditions (LessOr a b)=[(show a,"<=",show b)]
+getConditions (GreaterOr a b)=[(show a,">=",show b)]
+getConditions (EqString a b)=[(a,"=",b)]
+getConditions (EqStringInt a b)=[(a,"=",show b)]
+getConditions (EqStringBool a b)=[(a,"=",show b)]
+getConditions (And a b)=getConditions a  ++getConditions b 
+getConditions (Or a b)=getConditions a ++getConditions b 
+
+findConditions::Expr->[(String,String,String)]
+findConditions (SimplePrint a)=[]
+findConditions (UnionPrint a)=[]
+findConditions (Get a)=[]
+findConditions (Add a)=[]
+findConditions (Delete a)=[]
+findConditions (Where a)=getConditions a
+findConditions (Print a b)=findConditions b
+findConditions (End a)=findConditions a
+findConditions (Seq a b)=findConditions a++findConditions b
 
 
 parseError :: [Token] -> a
@@ -635,7 +664,9 @@ main = do
      let result = parseCalc tokens
      let files = getFiles result
 --solution problem 1      printContents files
-     print  result
+     let constraints = findConditions result
+     print constraints
+     printContents files constraints
 {-# LINE 1 "templates/GenericTemplate.hs" #-}
 -- $Id: GenericTemplate.hs,v 1.26 2005/01/14 14:47:22 simonmar Exp $
 
