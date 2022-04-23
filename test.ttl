@@ -1,1 +1,1 @@
-<http://www.cw.org/testSubA> <http://www.cw.org/hasPosInt> 50 .
+<http://www.cw.org/testSubA> <http://www.cw.org/problem3/#predicate3> 50 .

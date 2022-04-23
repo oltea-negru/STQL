@@ -117,11 +117,9 @@ data Cond = Less String Int
           | Greater String Int 
           | LessOr String Int 
           | GreaterOr String Int 
-      --    | EqInt Int Int
           | EqString String String
           | EqStringInt String Int
           | EqStringBool String Bool
-         -- | Not Cond 
           | And Cond Cond 
           | Or Cond Cond 
           deriving (Show, Eq)
@@ -147,15 +145,14 @@ unionFiles::[String]->IO () -- take the content of all files and
 unionFiles []= return ()    -- writes them in "file.txt" (deletes duplicates xo)
 unionFiles (x:xs) = do 
             a<-readFile x
-            appendFile "file.txt" a
-            appendFile "file.txt" "\n"
+            appendFile "file.txt" $ a ++ "\n"
             b<- readFile "file.txt"
             let c=lines b
             let d=nub c
             sequence (map (writeFile "file.txt") d )
             unionFiles xs
 
-printContents::[String]->[(String,String,String)]->IO()
+printContents::[String]->[Cond]->IO()
 printContents file constraints = do 
                                       if(length file==1)
                                       -- if its only one file it will write its contents in single.txt
@@ -163,32 +160,35 @@ printContents file constraints = do
                                           writeFile "file.txt" ""
                                           l<-readFile $ file!!0
                                           let line=lines l
-                                          let correctOutput=map (respects constraints 0) line 
-                                          print correctOutput
+                                          let triplet=splitTriplet (line!!0)
+                                          let bool=evalString (noBrackets(triplet !! 1)) (constraints!!0)
+                                          print (noBrackets (triplet !! 1))
+                                          print bool
                                        --   appendFile "file.txt" (correctOutput!!0)
                                       -- if there are multiple files it will write all of their contents in more.txt
                                       else do
                                           unionFiles file
 
-respects::[(String,String,String)]->Int->String ->String
-respects constraints index triplet  | (field=="\"OBJ\"") && relation=="<" && (makeInt object)<(makeInt value) = triplet
-                                    | (field=="\"OBJ\"") && relation=="<=" && (makeInt object)<=(makeInt value) = triplet
-                                    | (field=="\"OBJ\"") && relation==">" && (makeInt object)>(makeInt value) = triplet
-                                    | (field=="\"OBJ\"") && relation==">=" && (makeInt object)>=(makeInt value) = triplet
-                                    | (field=="\"OBJ\"") && relation=="=" && (makeInt object)==(makeInt value) = triplet
-                                    | (field=="\"OBJ\"") && relation=="<" && (makeInt object)<(makeInt value) = triplet
-                                    | (field=="\"OBJ\"") && relation=="<" && (makeInt object)<(makeInt value) = triplet
-                                    | (field=="\"OBJ\"") && relation=="<" && (makeInt object)<(makeInt value) = triplet
-                                    | (field=="\"OBJ\"") && relation=="<" && (makeInt object)<(makeInt value) = triplet
-                                    | otherwise = "1"
-        where subject = (splitTriplet triplet) !! 0
-              predicate = (splitTriplet triplet) !! 1
-              object = (splitTriplet triplet) !! 2
-              field = getFirst (constraints !! index)
-              relation = getSecond (constraints !! index)
-              value = getThird (constraints !! index)
-              
-isInt
+evalInt::Int->Cond->Bool
+evalInt s (Less a b)= s<b
+evalInt s (Greater a b)=s>b
+evalInt s (LessOr a b)=s<=b
+evalInt s (GreaterOr a b)=s>=b
+evalInt s (EqStringInt a b)=s==b
+evalInt s (And a b)=evalInt s a && evalInt s b
+evalInt s (Or a b)=evalInt s a || evalInt s b
+
+evalString::String->Cond->Bool
+evalString s (EqString a b)=s==b
+evalString s (And a b)=evalString s a && evalString s b
+evalString s (Or a b)=evalString s a || evalString s b
+
+evalBool::Bool->Cond->Bool
+evalBool s (EqStringBool a b)=s==b
+evalBool s (And a b)=evalBool s a && evalBool s b
+evalBool s (Or a b)=evalBool s a || evalBool s b
+
+
 
 makeInt::String->Int
 makeInt a= read a
@@ -205,28 +205,43 @@ getSecond (a,b,c) = b
 getThird::  (String,String,String)->String
 getThird (a,b,c) = c
 
-getConditions::Cond->[(String,String,String)]
-getConditions (Less a b)=[(show a,"<",show b)]
-getConditions (Greater a b)=[(show a,">",show b)]
-getConditions (LessOr a b)=[(show a,"<=",show b)]
-getConditions (GreaterOr a b)=[(show a,">=",show b)]
-getConditions (EqString a b)=[(a,"=",b)]
-getConditions (EqStringInt a b)=[(a,"=",show b)]
-getConditions (EqStringBool a b)=[(a,"=",show b)]
-getConditions (And a b)=getConditions a  ++getConditions b 
-getConditions (Or a b)=getConditions a ++getConditions b 
+-- getConditions::Cond->[(String,String,String)]
+-- getConditions (Less a b)=[(show a,"<",show b)]
+-- getConditions (Greater a b)=[(show a,">",show b)]
+-- getConditions (LessOr a b)=[(show a,"<=",show b)]
+-- getConditions (GreaterOr a b)=[(show a,">=",show b)]
+-- getConditions (EqString a b)=[(a,"=",b)]
+-- getConditions (EqStringInt a b)=[(a,"=",show b)]
+-- getConditions (EqStringBool a b)=[(a,"=",show b)]
+-- getConditions (And a b)=getConditions a  ++getConditions b 
+-- getConditions (Or a b)=getConditions a ++getConditions b 
 
-findConditions::Expr->[(String,String,String)]
+findConditions::Expr->[Cond]
 findConditions (SimplePrint a)=[]
 findConditions (UnionPrint a)=[]
 findConditions (Get a)=[]
 findConditions (Add a)=[]
 findConditions (Delete a)=[]
-findConditions (Where a)=getConditions a
+findConditions (Where a)= [a]
 findConditions (Print a b)=findConditions b
 findConditions (End a)=findConditions a
 findConditions (Seq a b)=findConditions a++findConditions b
 
+linkToString::String->String
+linkToString s = noBrackets s
+
+noBrackets::String->String
+noBrackets as = noLBracket $ noRBracket as
+
+noLBracket::String->String
+noLBracket []=[]
+noLBracket (a:as) | a=='<' =noLBracket as
+                  | otherwise = a: noLBracket as
+
+noRBracket::String->String
+noRBracket []=[]
+noRBracket (a:as) | a=='>' =noRBracket as
+                  | otherwise = a: noRBracket as
 
 parseError :: [Token] -> a
 parseError [] = error "error somewhere"
@@ -240,6 +255,7 @@ main = do
 --solution problem 1      printContents files
      let constraints = findConditions result
      print constraints
-     printContents files constraints
+     --printContents files constraints
+     
 
 }
