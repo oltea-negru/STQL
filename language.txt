@@ -1,1 +1,1 @@
-PRINT FROM test.ttl test.ttl 
+PRINT FROM test.ttl WHERE OBJ < 0 AND OBJ > 99;

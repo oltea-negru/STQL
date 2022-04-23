@@ -57,22 +57,39 @@ Seq: WHERE Cond                           { Where $2}
    | DELETE URI                           { Delete $2}
    
 
-Cond: Number '<' Number                   { Less $1 $3 } 
-    | Number '>' Number                   { Greater $1 $3 } 
-    | Number '<=' Number                  { LessOr $1 $3 } 
-    | Number '>=' Number                  { GreaterOr $1 $3 } 
+-- Cond: 
+--      Number '<' Number                   { Less $1 $3 } 
+--     | Number '>' Number                   { Greater $1 $3 } 
+--     | Number '<=' Number                  { LessOr $1 $3 }       
+--     | Number '>=' Number                  { GreaterOr $1 $3 } 
+--     | Cond AND Cond                       { And $1 $3}
+--     | Cond OR Cond                        { Or $1 $3}
+--     | Equal                               { $1 } 
+
+-- Equal: Number '=' Number                  { EqInt $1 $3}
+--      | SUB '=' Link                       {EqString $1 $3}
+--      | PRED '=' Link                      {EqString $1 $3}
+--      | OBJ '=' Link                       {EqString $1 $3}
+--      | OBJ '=' Bool                       {EqStringBool $1 $3}
+--      | OBJ '=' Lit                        {EqString $1 $3}
+--      | OBJ '=' Number                     {EqStringInt $1 $3}
+
+Cond: Field '<' Number                   { Less $1 $3 } 
+    | Field '>' Number                   { Greater $1 $3 } 
+    | Field '<=' Number                  { LessOr $1 $3 }       
+    | Field '>=' Number                  { GreaterOr $1 $3 } 
+    | SUB '=' Link                       {EqString $1 $3}
+    | PRED '=' Link                      {EqString $1 $3}
+    | OBJ '=' Link                       {EqString $1 $3}
+    | OBJ '=' Bool                       {EqStringBool $1 $3}
+    | OBJ '=' Lit                        {EqString $1 $3}
+    | OBJ '=' Number                     {EqStringInt $1 $3}
     | Cond AND Cond                       { And $1 $3}
     | Cond OR Cond                        { Or $1 $3}
-    | Equal                               { $1 } 
 
-Equal: Number '=' Number                  { EqInt $1 $3}
-     | SUB '=' Link                       {EqString $1 $3}
-     | PRED '=' Link                      {EqString $1 $3}
-     | OBJ '=' Link                       {EqString $1 $3}
-     | OBJ '=' Bool                       {EqStringBool $1 $3}
-     | OBJ '=' Lit                        {EqString $1 $3}
-     | OBJ '=' Number                     {EqStringInt $1 $3}
-
+Field: SUB {$1}
+     | PRED {$1}
+     | OBJ {$1}
 Link: URI {$1}
 Lit: lit {$1}
 Number: int {$1}
@@ -96,26 +113,26 @@ data Expr=  Print Files Expr
           | Delete String 
          deriving (Show,Eq)
 
-data Cond = Less Int Int 
-          | Greater Int Int 
-          | LessOr Int Int 
-          | GreaterOr Int Int 
-          | EqInt Int Int
+data Cond = Less String Int 
+          | Greater String Int 
+          | LessOr String Int 
+          | GreaterOr String Int 
+      --    | EqInt Int Int
           | EqString String String
           | EqStringInt String Int
           | EqStringBool String Bool
-          | Not Cond 
+         -- | Not Cond 
           | And Cond Cond 
           | Or Cond Cond 
           deriving (Show, Eq)
 
 data Files = OneFile String | MoreFiles String Files  deriving (Show,Eq)
 
-accessFiles::Files->[String]
+accessFiles::Files->[String] -- helper for getFiles, dont use
 accessFiles (OneFile a) =[a]
 accessFiles (MoreFiles a b)=[a] ++ accessFiles b
 
-getFiles::Expr->[String]
+getFiles::Expr->[String] -- returns list of all files mentioned in language
 getFiles (Print a b)=accessFiles a
 getFiles (SimplePrint a)=accessFiles a
 getFiles (Where a)=[]
@@ -126,38 +143,64 @@ getFiles (UnionPrint a)=accessFiles a
 getFiles (End a)=getFiles a
 getFiles (Seq a b)=getFiles a++ getFiles b
 
-unionFiles::[String]->IO ()
-unionFiles []= return ()
+unionFiles::[String]->IO () -- take the content of all files and                            
+unionFiles []= return ()    -- writes them in "file.txt" (deletes duplicates xo)
 unionFiles (x:xs) = do 
             a<-readFile x
-            appendFile "more.txt" "\n"
-            appendFile "more.txt" a
-            b<- readFile "more.txt"
+            appendFile "file.txt" "\n"
+            appendFile "file.txt" a
+            b<- readFile "file.txt"
             let c=lines b
             let d=nub c
-            sequence (map (writeFile "more.txt") d )
+            sequence (map (writeFile "file.txt") d )
             unionFiles xs
 
-parseError :: [Token] -> a
-parseError (b:bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++" "++ show b
-
+printContents::[String]->IO()
 printContents file = do 
                         if(length file==1)
                         -- if its only one file it will write its contents in single.txt
                             then do 
-                            writeFile "one.txt" ""
+                            writeFile "file.txt" ""
                             l<-readFile $ file!!0
-                            appendFile "one.txt" l
+                            appendFile "file.txt" l
                         -- if there are multiple files it will write all of their contents in more.txt
                         else do
                             unionFiles file
 
+-- getConditions::Cond->[(String,String,String)]
+-- getConditions (Less a b)=[(show a,"<",show b)]
+-- getConditions (Greater a b)=[(show a,">",show b)]
+-- getConditions (LessOr a b)=[(show a,"<=",show b)]
+-- getConditions (GreaterOr a b)=[(show a,">=",show b)]
+-- getConditions (EqInt a b)=[(show a,"=",show b)]
+-- getConditions (EqString a b)=[(a,"=",b)]
+-- getConditions (EqStringInt a b)=[(a,"=",show b)]
+-- getConditions (EqStringBool a b)=[(a,"=",show b)]
+-- getConditions (And a b)=getConditions a ++[("a","n","d")] ++getConditions b 
+-- getConditions (Or a b)=getConditions a ++[("o","r","r")] ++getConditions b 
+
+-- findConditions::Expr->[(String,String,String)]
+-- findConditions (SimplePrint a)=[]
+-- findConditions (UnionPrint a)=[]
+-- findConditions (Get a)=[]
+-- findConditions (Add a)=[]
+-- findConditions (Delete a)=[]
+-- findConditions (Where a)=getConditions a
+-- findConditions (Print a b)=findConditions b
+-- findConditions (End a)=findConditions a
+-- findConditions (Seq a b)=findConditions a++findConditions b
+
+
+parseError :: [Token] -> a
+parseError [] = error "error somewhere"
+parseError (b:bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++" "++ show b
 
 main = do
      contents <- readFile "language.txt"
      let tokens = alexScanTokens contents
      let result = parseCalc tokens
-     let output = getFiles result
-     printContents output
+     let files = getFiles result
+--solution problem 1      printContents files
+     print  result
 
 }
