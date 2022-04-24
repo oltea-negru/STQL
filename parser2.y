@@ -161,7 +161,7 @@ printContents file constraints = do
                                           l<-readFile $ file!!0
                                           let line=lines l
                                           let triplet=splitTriplet (line!!0)
-                                          let bool=evalString (noBrackets(triplet !! 1)) (constraints!!0)
+                                          let bool=evalString "SUB" (noBrackets(triplet !! 0)) (constraints!!0)
                                           print (noBrackets (triplet !! 1))
                                           print bool
                                        --   appendFile "file.txt" (correctOutput!!0)
@@ -178,10 +178,25 @@ evalInt s (EqStringInt a b)=s==b
 evalInt s (And a b)=evalInt s a && evalInt s b
 evalInt s (Or a b)=evalInt s a || evalInt s b
 
-evalString::String->Cond->Bool
-evalString s (EqString a b)=s==b
-evalString s (And a b)=evalString s a && evalString s b
-evalString s (Or a b)=evalString s a || evalString s b
+evalString::String->String->Cond->Bool
+evalString field s (EqString a b) = field==a && s==b
+evalString field s (And (EqString a b) (EqString c d)) | field==a = s==b 
+                                                       | field==c = s==d
+                                                       | otherwise = False
+evalString field s (And _ (EqString a b)) | field==a =s==b
+                                          | otherwise = False 
+evalString field s (And (EqString a b) _) | field==a =s==b
+                                          | otherwise = False
+evalString field s (Or (EqString a b) (EqString c d)) | field == a && field==b = s==b || s==d
+                                                      | field == a = s==b
+                                                      | field == b = s==d
+                                                      | otherwise = False
+evalString field s (Or _ (EqString a b))| field == a = s==b
+                                        | otherwise = False
+evalString field s (Or (EqString a b) _)| field == a = s==b
+                                        | otherwise = False 
+evalString field s (And a b)=evalString field s a && evalString field s b
+evalString field s (Or a b)=evalString field s a || evalString field s b
 
 evalBool::Bool->Cond->Bool
 evalBool s (EqStringBool a b)=s==b
@@ -255,7 +270,7 @@ main = do
 --solution problem 1      printContents files
      let constraints = findConditions result
      print constraints
-     --printContents files constraints
+     printContents files constraints
      
 
 }

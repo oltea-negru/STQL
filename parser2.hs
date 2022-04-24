@@ -595,7 +595,7 @@ printContents file constraints = do
                                           l<-readFile $ file!!0
                                           let line=lines l
                                           let triplet=splitTriplet (line!!0)
-                                          let bool=evalLink (noBrackets(triplet !! 1)) (constraints!!0)
+                                          let bool=evalString "SUB" (noBrackets(triplet !! 0)) (constraints!!0)
                                           print (noBrackets (triplet !! 1))
                                           print bool
                                        --   appendFile "file.txt" (correctOutput!!0)
@@ -612,10 +612,30 @@ evalInt s (EqStringInt a b)=s==b
 evalInt s (And a b)=evalInt s a && evalInt s b
 evalInt s (Or a b)=evalInt s a || evalInt s b
 
-evalLink::String->Cond->Bool
-evalLink s (EqString a b)=s==b
-evalLink s (And a b)=evalLink s a && evalLink s b
-evalLink s (Or a b)=evalLink s a || evalLink s b
+evalString::String->String->Cond->Bool
+evalString field s (EqString a b) = field==a && s==b
+evalString field s (And (EqString a b) (EqString c d)) | field==a = s==b 
+                                                       | field==c = s==d
+                                                       | otherwise = False
+evalString field s (And _ (EqString a b)) | field==a =s==b
+                                          | otherwise = False 
+evalString field s (And (EqString a b) _) | field==a =s==b
+                                          | otherwise = False
+evalString field s (Or (EqString a b) (EqString c d)) | field == a && field==b = s==b || s==d
+                                                      | field == a = s==b
+                                                      | field == b = s==d
+                                                      | otherwise = False
+evalString field s (Or _ (EqString a b))| field == a = s==b
+                                        | otherwise = False
+evalString field s (Or (EqString a b) _)| field == a = s==b
+                                        | otherwise = False 
+evalString field s (And a b)=evalString field s a && evalString field s b
+evalString field s (Or a b)=evalString field s a || evalString field s b
+
+evalBool::Bool->Cond->Bool
+evalBool s (EqStringBool a b)=s==b
+evalBool s (And a b)=evalBool s a && evalBool s b
+evalBool s (Or a b)=evalBool s a || evalBool s b
 
 
 
@@ -684,7 +704,7 @@ main = do
 --solution problem 1      printContents files
      let constraints = findConditions result
      print constraints
-     --printContents files constraints
+     printContents files constraints
 {-# LINE 1 "templates/GenericTemplate.hs" #-}
 -- $Id: GenericTemplate.hs,v 1.26 2005/01/14 14:47:22 simonmar Exp $
 
