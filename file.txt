@@ -1,1 +1,0 @@
-http://www.cw.org/pprefix/subjectC http://www.cw.org/pprefix/predicateC http://www.cw.org/pprefix/objectC .

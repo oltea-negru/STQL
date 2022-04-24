@@ -30,13 +30,12 @@ $white+                                                                   ;
   AND                                                        { \p s -> TokenAnd p}
   OR                                                         { \p s -> TokenOr p}
   FROM                                                       { \p s -> TokenFrom p}
-  NOT                                                        { \p s -> TokenNot p}
   ADD                                                        { \p s -> TokenAdd p}
   DELETE                                                     { \p s -> TokenDelete p}
   RESTRICT                                                   { \p s -> TokenRestrict p}  
   GET                                                        { \p s -> TokenGet p}
-  \-?$number+                                            { \p s -> TokenInt p (read s) }
-  \+?$number+                                            { \p s -> TokenInt p (read (drop 1 s)) }
+  \-?$number+                                                { \p s -> TokenInt p (read s) }
+  \+?$number+                                                { \p s -> TokenInt p (read (drop 1 s)) }
   \"$mix+\"                                                  { \p s -> TokenLiteral p s }
   $mix+                                                      { \p s -> TokenLiteral p s }
   \(                                                         { \p s -> TokenLBrack p}
@@ -51,6 +50,7 @@ $white+                                                                   ;
   \<\=                                                       { \p s -> TokenLessEq p}
   \>\=                                                       { \p s -> TokenGreaterEq p}
   \=                                                         { \p s -> TokenEquals p }
+  \!\=                                                       { \p s -> TokenNot p}
 
 { 
 

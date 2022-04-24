@@ -9,7 +9,8 @@ PRINT FROM "foo" WHERE SUB = "http://www.cw.org/#problem2" AND OBJ = true
 PRINT FROM "foo" WHERE PRED = "http://www.cw.org/problem3/#predicate1" OR "http://www.cw.org/problem3/#predicate2" OR "http://www.cw.org/problem3/#predicate3" 
 
 ^^problem 4:
-PRINT FROM (PRINT FROM "foo" WHERE OBJ = SUB FROM "bar") (PRINT FROM "bar" WHERE OBJ = SUB FROM "foo")
+PRINT FROM (PRINT FROM "foo" WHERE OBJ = SUB FROM "bar");
+(PRINT FROM "bar" WHERE OBJ = SUB FROM "foo");
 
 
 ^^problem 5:

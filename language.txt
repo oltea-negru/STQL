@@ -1,1 +1,1 @@
-PRINT FROM test.ttl WHERE SUB = http://www.cw.org/pprefix/subjectC;
+PRINT FROM test.ttl WHERE OBJ > 10 AND OBJ < 30 ;
