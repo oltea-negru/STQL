@@ -1,0 +1,5 @@
+<http://www.cw.org/aa> <http://www.cw.org/b> true .
+
+<http://www.cw.org/aa> <http://www.cw.org/b> 10.
+<http://www.cw.org/aa> <http://www.cw.org/b> 20 .
+<http://www.cw.org/aa> <http://www.cw.org/b> 30 .
