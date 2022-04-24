@@ -1,1 +1,1 @@
-PRINT FROM test.ttl WHERE SUB = http://www.cw.org/problem3/#predicate2 OR PRED=http://www.cw.org/problem3/#pre OR OBJ=10;
+PRINT FROM test.ttl WHERE SUB = http://www.cw.org/pprefix/subjectC;

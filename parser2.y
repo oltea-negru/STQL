@@ -154,20 +154,35 @@ unionFiles (x:xs) = do
 
 printContents::[String]->[Cond]->IO()
 printContents file constraints = do 
-                                      if(length file==1)
-                                      -- if its only one file it will write its contents in single.txt
-                                          then do 
-                                          writeFile "file.txt" ""
-                                          l<-readFile $ file!!0
-                                          let line=lines l
-                                          let triplet=splitTriplet (line!!0)
-                                          let bool=evalString "SUB" (noBrackets(triplet !! 0)) (constraints!!0)
-                                          print (noBrackets (triplet !! 1))
-                                          print bool
-                                       --   appendFile "file.txt" (correctOutput!!0)
-                                      -- if there are multiple files it will write all of their contents in more.txt
-                                      else do
-                                          unionFiles file
+                                    if(length file==1)
+                                    -- if its only one file it will write its contents in single.txt
+                                        then do 
+                                        writeFile "file.txt" ""
+                                        l<-readFile $ file!!0
+                                        let line=lines l
+                                        let triplets=map splitTriplet line
+                                        let constraint=constraints!!0
+                                        let fields=nub (getFields constraint)
+                                        if(length fields==1)
+                                            then do 
+                                                nee triplets (fields!!0) constraint
+                                        else do return ()
+                                     -- appendFile "file.txt" (correctOutput!!0)
+                                    -- if there are multiple files it will write all of their contents in more.txt
+                                    else do
+                                        unionFiles file
+
+nee::[[String]]->String->Cond->IO()
+nee [] field cond = return ()
+nee (x:xs) field cond = do
+                    let value=getValue field x
+                    let bool=evalString field value cond 
+                    print value
+                    if (bool==True)
+                        then do
+                             appendFile "file.txt" (unwords x)
+                    else do print bool
+                    nee xs field cond
 
 evalInt::Int->Cond->Bool
 evalInt s (Less a b)= s<b
@@ -211,25 +226,22 @@ makeInt a= read a
 splitTriplet::String->[String]
 splitTriplet triplet = words triplet
 
-getFirst:: (String,String,String)->String
-getFirst (a,b,c) = a
+getValue:: String->[String]->String
+getValue field triplet | field=="SUB" = triplet!!0
+                       | field=="PRED"= triplet!!1
+                       | otherwise = triplet !! 2
 
-getSecond::  (String,String,String)->String
-getSecond (a,b,c) = b
 
-getThird::  (String,String,String)->String
-getThird (a,b,c) = c
-
--- getConditions::Cond->[(String,String,String)]
--- getConditions (Less a b)=[(show a,"<",show b)]
--- getConditions (Greater a b)=[(show a,">",show b)]
--- getConditions (LessOr a b)=[(show a,"<=",show b)]
--- getConditions (GreaterOr a b)=[(show a,">=",show b)]
--- getConditions (EqString a b)=[(a,"=",b)]
--- getConditions (EqStringInt a b)=[(a,"=",show b)]
--- getConditions (EqStringBool a b)=[(a,"=",show b)]
--- getConditions (And a b)=getConditions a  ++getConditions b 
--- getConditions (Or a b)=getConditions a ++getConditions b 
+getFields::Cond->[String]
+getFields (Less a b)=[a]
+getFields (Greater a b)=[a]
+getFields (LessOr a b)=[a]
+getFields (GreaterOr a b)=[a]
+getFields (EqString a b)=[a]
+getFields (EqStringInt a b)=[a]
+getFields (EqStringBool a b)=[a]
+getFields (And a b)=getFields a  ++getFields b 
+getFields (Or a b)=getFields a ++getFields b 
 
 findConditions::Expr->[Cond]
 findConditions (SimplePrint a)=[]
@@ -241,22 +253,6 @@ findConditions (Where a)= [a]
 findConditions (Print a b)=findConditions b
 findConditions (End a)=findConditions a
 findConditions (Seq a b)=findConditions a++findConditions b
-
-linkToString::String->String
-linkToString s = noBrackets s
-
-noBrackets::String->String
-noBrackets as = noLBracket $ noRBracket as
-
-noLBracket::String->String
-noLBracket []=[]
-noLBracket (a:as) | a=='<' =noLBracket as
-                  | otherwise = a: noLBracket as
-
-noRBracket::String->String
-noRBracket []=[]
-noRBracket (a:as) | a=='>' =noRBracket as
-                  | otherwise = a: noRBracket as
 
 parseError :: [Token] -> a
 parseError [] = error "error somewhere"
