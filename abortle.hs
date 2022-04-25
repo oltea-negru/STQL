@@ -13,6 +13,7 @@ import Data.Char ()
 import Data.Function (on)
 import Data.List (intercalate, nub, sort)
 import Data.Typeable (typeOf)
+import GHC.Base (VecElem (Int16ElemRep))
 import Lang (Cond (And, EqBool, EqInt, EqString, Greater, GreaterOr, Less, LessOr, NotEqBool, NotEqInt, NotEqString, Or), Expr (Add, Delete, Finish, Get, Path, Print, SimplePrint, UnionPrint, Where), Files (MoreFiles, OneFile), parseLang)
 import Lexer
 import Parser (Exp (End, Prefix, Seq, TheBase, Triplets), Link (Link, Notation, Short), Literal (Literal), Object (ObjectBool, ObjectInt, ObjectLink, ObjectString), ObjectList (MultipleObjects, SingleObject), Predicate (Predicate), PredicateList (MultiplePredicates, SinglePredicate), Subject (Subject), Triplet (Triplet), parseInput)
@@ -158,79 +159,6 @@ getFiles (UnionPrint a) = accessFiles a
 getFiles (Finish a) = getFiles a
 getFiles (Path a b) = getFiles a ++ getFiles b
 
--- printContents :: [String] -> [Cond] -> IO ()
--- printContents file constraints = do
---   if (length file == 1)
---     then -- if its only one file it will write its contents in single.txt
---     do
---       writeFile "file.txt" ""
---     else -- fileContents<-readFile $ file!!0
---     -- let line=lines fileContents
---     -- let strings=map splitTriplet line
---     -- let triplets=modifyTriplets strings
---     -- let constraint=constraints!!0
---     -- let fields=nub (getFields constraint)
---     -- if(length fields==1)
---     --     then do
---     --         nee triplets (fields!!0) constraint
---     -- else do
---     --         if(length fields==2)
---     --             then do
---     --                let options=anthi triplets (fields!!0) constraint
---     --                let result=anthi options (fields!!1) constraint
---     --                print result
---     --         else do print "oops"
---     -- appendFile "file.txt" (correctOutput!!0)
---     -- if there are multiple files it will write all of their contents in more.txt
---     do
---       writeFile "file.txt" ""
---       unionFiles file
-
--- nee::[[String]]->String->Cond->IO() --returns triplet that match the given condition
--- nee [] field cond = return ()
--- nee (x:xs) field cond = do
---                     let value=getValue field x
---                     if(value!!0/='"' && value!!0/='<')
---                     then do
---                             let boolValue=read "True" :: Bool
---                             let intValue=read "1" :: Int
---                             let shit= read value
---                             print (typeOf shit)
---                             if ((typeOf shit)==(typeOf intValue))
---                             then do
---                                     print "s"
---                                     let bool=evalInt shit cond
---                                     if (bool==True)
---                                         then do
---                                              print x
---                                     else do nee xs field cond
---                             else do
---                                     if(typeOf shit==typeOf boolValue)
---                                         then do
---                                             let bool2=evalBool shit cond
---                                             if (bool2==True)
---                                                 then do
---                                                     print x
---                                             else do nee xs field cond
---                                     else do nee xs field cond
---                     else do
---                             let bool3=evalString field value cond
---                             if(bool3==True)
---                             then do
---                                 print xs
---                             else do
---                                 nee xs field cond
-
--- anthi::[[String]]->String->Cond->[[String]] --returns triplet that match thr given condition
--- anthi [] field cond = []
--- anthi (x:xs) field cond = do
---                             let value=getValue field x
---                             let bool=evalString field value cond
---                             if (bool==True)
---                                 then do
---                                     x:anthi xs field cond
---                             else do anthi xs field cond
-
 evalInt :: Int -> Cond -> Bool --takes value it needs to match, and outputs if condition is matched by expression
 evalInt s (Less a b) = s < b
 evalInt s (Greater a b) = s > b
@@ -238,24 +166,9 @@ evalInt s (LessOr a b) = s <= b
 evalInt s (GreaterOr a b) = s >= b
 evalInt s (EqInt a b) = s == b
 evalInt s (NotEqInt a b) = s /= b
--- evalInt s (And (EqInt a b) (EqInt c d)) = s==b && s==d
--- evalInt s (And (NotEqInt a b) (NotEqInt c d)) = s/=b && s/=d
--- evalInt s (And (NotEqInt a b) (EqInt c d)) =s/=b && s==d
--- evalInt s (And (EqInt a b) (NotEqInt c d))=s==b&&s==d
--- evalInt s (And _ (EqInt a b)) = s==b
--- evalInt s (And (NotEqInt a b) _ ) = s/=b
--- evalInt s (And _ (EqInt a b)) =  s==b
--- evalInt s (And (NotEqInt a b) _ ) = s/=b
--- evalInt s (Or (EqInt a b) (EqInt c d))  =s==b || s==d
--- evalInt s (Or (NotEqInt a b) (NotEqInt c d)) = s/=b || s/=d
--- evalInt s (Or (NotEqInt a b) (EqInt c d))   = s/=b || s==d
--- evalInt s (Or (EqInt a b) (NotEqInt c d))    = s==b || s/=d
--- evalInt s (Or _ (EqInt a b)) =  s==b
--- evalInt s (Or (NotEqInt a b) _ ) = s/=b
--- evalInt s (Or _ (EqInt a b)) =  s==b
--- evalInt s (Or (NotEqInt a b) _ ) =  s/=b
 evalInt s (And a b) = evalInt s a && evalInt s b
 evalInt s (Or a b) = evalInt s a || evalInt s b
+evalInt s _ = False
 
 evalString :: String -> String -> Cond -> Bool --takes SUB/PRED/OBJ, value it needs to match, and outputs if condition is matched by expression
 evalString field s (NotEqString a b) = field == a && s /= b
@@ -306,28 +219,14 @@ evalString field s (Or _ (NotEqString a b)) = field == a && s /= b
 evalString field s (Or (NotEqString a b) _) = field == a && s /= b
 evalString field s (And a b) = evalString field s a && evalString field s b
 evalString field s (Or a b) = evalString field s a || evalString field s b
+evalString field s _ = False
 
 evalBool :: Bool -> Cond -> Bool --takes bool it needs to match, and outputs if condition is matched by expression
 evalBool s (EqBool a b) = s == b
 evalBool s (NotEqBool a b) = s /= b
--- evalBool s (And (EqBool a b) (EqBool c d)) = s==b && s==d
--- evalBool s (And (NotEqBool a b) (NotEqBool c d)) = s/=b && s/=d
--- evalBool s (And (NotEqBool a b) (EqBool c d)) =s/=b && s==d
--- evalBool s (And (EqBool a b) (NotEqBool c d))=s==b&&s==d
--- evalBool s (And _ (EqBool a b)) = s==b
--- evalBool s (And (NotEqBool a b) _ ) = s/=b
--- evalBool s (And _ (EqBool a b)) =  s==b
--- evalBool s (And (NotEqBool a b) _ ) = s/=b
--- evalBool s (Or (EqBool a b) (EqBool c d))  =s==b || s==d
--- evalBool s (Or (NotEqBool a b) (NotEqBool c d)) = s/=b || s/=d
--- evalBool s (Or (NotEqBool a b) (EqBool c d))   = s/=b || s==d
--- evalBool s (Or (EqBool a b) (NotEqBool c d))    = s==b || s/=d
--- evalBool s (Or _ (EqBool a b)) =  s==b
--- evalBool s (Or (NotEqBool a b) _ ) = s/=b
--- evalBool s (Or _ (EqBool a b)) =  s==b
--- evalBool s (Or (NotEqBool a b) _ ) =  s/=b
 evalBool s (And a b) = evalBool s a && evalBool s b
 evalBool s (Or a b) = evalBool s a || evalBool s b
+evalBool s _ = False
 
 makeInt :: String -> Int --reads string to int
 makeInt a = read a
@@ -337,7 +236,7 @@ splitTriplet triplet = words triplet
 
 getValue :: String -> [String] -> String --returns required part of triplet depending on field
 getValue field triplet
-  | field == "SUB" = triplet !! 0
+  | field == "SUB" = head triplet
   | field == "PRED" = triplet !! 1
   | otherwise = triplet !! 2
 
@@ -366,19 +265,97 @@ findConditions (Print a b) = findConditions b
 findConditions (Finish a) = findConditions a
 findConditions (Path a b) = findConditions a ++ findConditions b
 
+execute :: IO [String] -> Cond -> IO [String]
+execute file constraint = do
+  line <- file
+  let strings = map splitTriplet line
+  let triplets = modifyTriplets strings
+  let fields = nub (getFields constraint)
+  -- if(length fields==1)
+  --     then do
+  nee triplets (head fields) constraint
+
+-- else do
+--         if(length fields==2)
+--             then do
+--                let options=anthi triplets (fields!!0) constraint
+--                let result=anthi options (fields!!1) constraint
+--                print result
+--         else do print "oops"
+
+nee :: [[String]] -> String -> Cond -> IO [String] --returns triplet that match the given condition
+nee [] field cond = return []
+nee (x : xs) field cond = do
+  let v = getValue field x
+  if (head v /= '"' && v !! 4 /= ':')
+    then do
+      if (head v == 'T' || head v == 'F')
+        then do
+          let value = read v :: Bool
+          let bool = evalBool value cond
+          if (bool)
+            then do
+              print x
+              next <- nee xs field cond
+              return (x ++ next)
+            else do
+              nee xs field cond
+        else do
+          let value = read v :: Int
+          let bool = evalInt value cond
+          if (bool)
+            then do
+              print x
+              next <- nee xs field cond
+              return (x ++ next)
+            else do
+              nee xs field cond
+    else do
+      let bool = evalString field v cond
+      if (bool)
+        then do
+          print x
+          next <- nee xs field cond
+          return (x ++ next)
+        else do
+          nee xs field cond
+
+--       -- if (typeOf value == typeOf boolValue)
+--       --   then do
+--         let bool2 = evalBool value cond
+--         if (bool2 == True)
+--           then do
+--             print x
+--           else do nee xs field cond
+--      --  else do nee xs field cond
+-- else do
+--   let bool3 = evalString field value cond
+--   if (bool3 == True)
+--     then do
+--       print xs
+--     else do
+--       nee xs field cond
+
+-- anthi::[[String]]->String->Cond->[[String]] --returns triplet that match thr given condition
+-- anthi [] field cond = []
+-- anthi (x:xs) field cond = do
+--                             let value=getValue field x
+--                             let bool=evalString field value cond
+--                             if (bool==True)
+--                                 then do
+--                                     x:anthi xs field cond
+--                             else do anthi xs field cond
+
 main = do
   contents <- readFile "language.txt"
   let tokens = alexScanTokens contents
   let result = parseLang tokens
   let files = getFiles result
   let constraints = findConditions result
-  parseTTL (unionFiles files)
+  let triplets = parseTTL (unionFiles files)
+  execute triplets (head constraints)
 
--- takes ttl and returns expanded triplets
-
--- take the content of all files and
-
-unionFiles :: [FilePath] -> IO String
+unionFiles :: [FilePath] -> IO String -- works
 unionFiles [] = return ""
 unionFiles (x : xs) = do
   a <- readFile x
@@ -386,10 +363,9 @@ unionFiles (x : xs) = do
     bs <- unionFiles xs
     return (a ++ bs)
 
-parseTTL :: IO String -> IO [()]
+parseTTL :: IO String -> IO [String] -- works
 parseTTL content = do
   input <- content
-  print (typeOf content)
   let tokens = alexScanTokens input
   let result = parseInput tokens
   let base = getBase result
@@ -407,4 +383,4 @@ parseTTL content = do
   let sortedsubPredObTupleList = sort (subPredObTupleList) --string,string,ob
   let final = zip (map getSubPred sortedsubPredObTupleList) (obToStringHelper prefixes base (map getThird sortedsubPredObTupleList))
   let strings = [a ++ " " ++ b ++ " " ++ c ++ " ." | (a, b, c) <- map makeFinalTriplet'' final]
-  mapM print strings
+  return strings
