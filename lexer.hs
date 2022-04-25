@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-missing-signatures #-}
 {-# LANGUAGE CPP #-}
-{-# LINE 1 ".\Lexer.x" #-}
+{-# LINE 1 "lexer.x" #-}
 module Lexer where
 #if __GLASGOW_HASKELL__ >= 603
 #include "ghcconfig.h"
@@ -20150,7 +20150,7 @@ alex_actions = array (0 :: Int, 88)
   , (0,alex_action_12)
   ]
 
-{-# LINE 53 ".\Lexer.x" #-}
+{-# LINE 53 "lexer.x" #-}
 data Token = 
   TokenShort AlexPosn String      | 
   TokenDot AlexPosn               |
@@ -20199,8 +20199,8 @@ tokenPosn (TokenPrefix (AlexPn _ x y) ) = show  x ++":"++show y
 tokenPosn (TokenLiteral (AlexPn _ x y) a) = show  x ++":"++show y
 tokenPosn (TokenColon (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenQuote (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenComma (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenSemiColon (AlexPn _ x y)) = show  x ++":"++show y
+
+
 tokenPosn (TokenURI (AlexPn _ x y) s) = show  x ++":"++show y
 tokenPosn (TokenPrint (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenWhere (AlexPn _ x y)) = show  x ++":"++show y

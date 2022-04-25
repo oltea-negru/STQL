@@ -1,0 +1,8 @@
+@base <http://www.example.org/> .
+@prefix foo : <http://www.exampleprefix.org/> .
+@prefix bar : <exampleBasePrefix/> .
+<http://www.exampleabsolute.org/exSub>
+<http://www.exampleabsolute.org/exPred>
+<http://www.exampleabsolute.org/obj> .
+<exBaseSub> foo:exPred <exObj> .
+bar:exSub2 <exPred3> "LiteralValue" .

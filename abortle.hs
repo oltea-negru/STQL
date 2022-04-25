@@ -265,15 +265,36 @@ findConditions (Print a b) = findConditions b
 findConditions (Finish a) = findConditions a
 findConditions (Path a b) = findConditions a ++ findConditions b
 
+andOr :: Cond -> String
+andOr (And a b) = "and"
+
+andOR (Or a b) = "or"
+
 execute :: IO [String] -> Cond -> IO [String]
 execute file constraint = do
   line <- file
   let strings = map splitTriplet line
   let triplets = modifyTriplets strings
   let fields = nub (getFields constraint)
-  -- if(length fields==1)
-  --     then do
-  nee triplets (head fields) constraint
+  print $ fields !! 1
+  if (length fields == 1)
+    then do
+      nee triplets (head fields) constraint
+    else
+      if (length fields == 2)
+        then do
+          let decision = andOr constraint
+          if (decision == "and")
+            then do
+              options <- nee triplets (head fields) constraint
+              let smh = map words options
+              nee smh (fields !! 1) constraint
+            else do
+              options1 <- nee triplets (head fields) constraint
+              options2 <- nee triplets (fields !! 1) constraint
+              return (options1 ++ options2)
+        else do
+          return ["A"]
 
 -- else do
 --         if(length fields==2)
@@ -287,7 +308,7 @@ nee :: [[String]] -> String -> Cond -> IO [String] --returns triplet that match 
 nee [] field cond = return []
 nee (x : xs) field cond = do
   let v = getValue field x
-  if (head v /= '"' && v !! 4 /= ':')
+  if (head v /= '"' && head v /= 'h')
     then do
       if (head v == 'T' || head v == 'F')
         then do
@@ -352,6 +373,7 @@ main = do
   let result = parseLang tokens
   let files = getFiles result
   let constraints = findConditions result
+  print constraints
   let triplets = parseTTL (unionFiles files)
   execute triplets (head constraints)
 

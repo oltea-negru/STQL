@@ -100,8 +100,8 @@ tokenPosn (TokenPrefix (AlexPn _ x y) ) = show  x ++":"++show y
 tokenPosn (TokenLiteral (AlexPn _ x y) a) = show  x ++":"++show y
 tokenPosn (TokenColon (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenQuote (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenComma (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenSemiColon (AlexPn _ x y)) = show  x ++":"++show y
+
+
 tokenPosn (TokenURI (AlexPn _ x y) s) = show  x ++":"++show y
 tokenPosn (TokenPrint (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenWhere (AlexPn _ x y)) = show  x ++":"++show y
@@ -130,5 +130,4 @@ tokenPosn (TokenRBrack (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenTrue (AlexPn _ x y)s) = show  x ++":"++show y
 tokenPosn (TokenFalse (AlexPn _ x y)s) = show  x ++":"++show y
 tokenPosn (TokenDot (AlexPn _ x y)) = show  x ++":"++show y
-
 }

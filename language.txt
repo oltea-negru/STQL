@@ -1,1 +1,2 @@
-PRINT FROM UNION foo.ttl bar.ttl WHERE SUB=http://www.cw.org/subjectA ;
+
+PRINT FROM foo.ttl WHERE SUB=http://www.cw.org/subjectA AND PRED=http://www.cw.org/predicateA ;

@@ -6,6 +6,7 @@ import Lexer
 %tokentype { Token } 
 %error { parseError }
 %token  
+<<<<<<< Updated upstream
     prefix   { TokenPrefix p }
     base     { TokenBase p }
     lit      { TokenLiteral p $$ } 
@@ -18,6 +19,18 @@ import Lexer
     int      { TokenInt p $$ }  
     true     { TokenTrue p $$}
     false    { TokenFalse p $$}                      
+=======
+    prefix     { TokenPrefix p }
+    base       { TokenBase p }
+    lit        { TokenLiteral p $$ } 
+    http       { TokenURI p $$ }
+    short      { TokenShort p $$}
+    '.'        { TokenDot p }
+    ','        { TokenComma p }
+    ';'        { TokenSemiColon p }
+    ':'        { TokenColon p }
+    '"'        { TokenQuote p }                        
+>>>>>>> Stashed changes
 
 %left '.' ',' ';'
 %%
@@ -72,10 +85,14 @@ data Predicate = Predicate Link  deriving (Show,Eq)
 data ObjectList = SingleObject Object  
                 | MultipleObjects ObjectList ObjectList    deriving (Show,Eq)
 
+<<<<<<< Updated upstream
 data Object = ObjectLink Link
               | ObjectInt Int
               | ObjectBool Bool 
               | ObjectString Literal   deriving (Show,Eq,Ord)
+=======
+data Object = Object String deriving Show  -- | Object Bool |Object Int
+>>>>>>> Stashed changes
 
 data Link = Link String | Short String | Notation Literal Literal deriving (Show, Eq,Ord)
 data Literal = Literal String deriving (Show, Eq,Ord)
