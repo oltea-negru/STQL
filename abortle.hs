@@ -266,11 +266,10 @@ findConditions (Finish a) = findConditions a
 findConditions (Path a b) = findConditions a ++ findConditions b
 
 andOr :: Cond -> String
+andOr (Or a b) = "or"
 andOr (And a b) = "and"
 
-andOR (Or a b) = "or"
-
-execute :: IO [String] -> Cond -> IO [String]
+execute :: IO [String] -> Cond -> IO [[String]]
 execute file constraint = do
   line <- file
   let strings = map splitTriplet line
@@ -286,16 +285,14 @@ execute file constraint = do
           if (decision == "and")
             then do
               options <- nee triplets (head fields) constraint
-              let smh = map words options
-              print (smh !! 1)
-              nee smh (fields !! 1) constraint
+              nee options (fields !! 1) constraint
             else do
               options1 <- nee triplets (head fields) constraint
               options2 <- nee triplets (fields !! 1) constraint
               return (options1 ++ options2)
         else do
           print "no"
-          return ["A"]
+          return [[]]
 
 -- else do
 --         if(length fields==2)
@@ -305,7 +302,7 @@ execute file constraint = do
 --                print result
 --         else do print "oops"
 
-nee :: [[String]] -> String -> Cond -> IO [String] --returns triplet that match the given condition
+nee :: [[String]] -> String -> Cond -> IO [[String]] --returns triplet that match the given condition
 nee [] field cond = return []
 nee (x : xs) field cond = do
   let v = getValue field x
@@ -319,7 +316,7 @@ nee (x : xs) field cond = do
             then do
               print x
               next <- nee xs field cond
-              return (x ++ next)
+              return ([x] ++ next)
             else do
               nee xs field cond
         else do
@@ -329,7 +326,7 @@ nee (x : xs) field cond = do
             then do
               print x
               next <- nee xs field cond
-              return (x ++ next)
+              return ([x] ++ next)
             else do
               nee xs field cond
     else do
@@ -338,7 +335,7 @@ nee (x : xs) field cond = do
         then do
           print x
           next <- nee xs field cond
-          return (x ++ next)
+          return ([x] ++ next)
         else do
           nee xs field cond
 

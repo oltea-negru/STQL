@@ -1,2 +1,2 @@
 
-PRINT FROM foo.ttl WHERE SUB=http://www.cw.org/subjectA AND PRED=http://www.cw.org/predicateA ;
+PRINT FROM foo.ttl WHERE SUB=http://www.cw.org/subjectA OR PRED=http://www.cw.org/predicateA ;
