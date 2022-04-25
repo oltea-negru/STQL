@@ -276,7 +276,6 @@ execute file constraint = do
   let strings = map splitTriplet line
   let triplets = modifyTriplets strings
   let fields = nub (getFields constraint)
-  print $ fields !! 1
   if (length fields == 1)
     then do
       nee triplets (head fields) constraint
@@ -288,12 +287,14 @@ execute file constraint = do
             then do
               options <- nee triplets (head fields) constraint
               let smh = map words options
+              print (smh !! 1)
               nee smh (fields !! 1) constraint
             else do
               options1 <- nee triplets (head fields) constraint
               options2 <- nee triplets (fields !! 1) constraint
               return (options1 ++ options2)
         else do
+          print "no"
           return ["A"]
 
 -- else do
@@ -340,32 +341,6 @@ nee (x : xs) field cond = do
           return (x ++ next)
         else do
           nee xs field cond
-
---       -- if (typeOf value == typeOf boolValue)
---       --   then do
---         let bool2 = evalBool value cond
---         if (bool2 == True)
---           then do
---             print x
---           else do nee xs field cond
---      --  else do nee xs field cond
--- else do
---   let bool3 = evalString field value cond
---   if (bool3 == True)
---     then do
---       print xs
---     else do
---       nee xs field cond
-
--- anthi::[[String]]->String->Cond->[[String]] --returns triplet that match thr given condition
--- anthi [] field cond = []
--- anthi (x:xs) field cond = do
---                             let value=getValue field x
---                             let bool=evalString field value cond
---                             if (bool==True)
---                                 then do
---                                     x:anthi xs field cond
---                             else do anthi xs field cond
 
 main = do
   contents <- readFile "language.txt"
