@@ -1,9 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-missing-signatures #-}
 {-# LANGUAGE CPP #-}
-{-# LINE 1 "lexer.x" #-}
-module Lexer where 
-import System.IO
-import System.Environment
+{-# LINE 1 ".\Lexer.x" #-}
+module Lexer where
 #if __GLASGOW_HASKELL__ >= 603
 #include "ghcconfig.h"
 #elif defined(__GLASGOW_HASKELL__)
@@ -20152,7 +20150,7 @@ alex_actions = array (0 :: Int, 88)
   , (0,alex_action_12)
   ]
 
-{-# LINE 55 "lexer.x" #-}
+{-# LINE 53 ".\Lexer.x" #-}
 data Token = 
   TokenShort AlexPosn String      | 
   TokenDot AlexPosn               |

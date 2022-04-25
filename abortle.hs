@@ -1,52 +1,22 @@
+{-# HLINT ignore "Redundant bracket" #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Use foldr" #-}
+{-# HLINT ignore "Use map" #-}
+
+module Abortle where
+
 import Control.Monad ()
 import Data.Char ()
 import Data.Function (on)
-import Data.List (nub)
+import Data.List (intercalate, nub, sort)
 import Data.Typeable ()
-import Language (parseLang)
+import Lang (Cond (And, EqBool, EqInt, EqString, Greater, GreaterOr, Less, LessOr, NotEqBool, NotEqInt, NotEqString, Or), Expr (Add, Delete, Finish, Get, Path, Print, SimplePrint, UnionPrint, Where), Files (MoreFiles, OneFile), parseLang)
 import Lexer
-import Parser (parseInput)
+import Parser (Exp (End, Prefix, Seq, TheBase, Triplets), Link (Link, Notation, Short), Literal (Literal), Object (ObjectBool, ObjectInt, ObjectLink, ObjectString), ObjectList (MultipleObjects, SingleObject), Predicate (Predicate), PredicateList (MultiplePredicates, SinglePredicate), Subject (Subject), Triplet (Triplet), parseInput)
 import System.Environment ()
 import System.IO ()
-
-parseError :: [Token] -> a
-parseError [] = error "No Tokens"
-parseError (b : bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++ " " ++ show b
-
-data Exp
-  = TheBase Link
-  | Prefix Literal Link
-  | Triplets Triplet
-  | Seq Exp Exp
-  | End Exp
-  deriving (Show, Eq)
-
-data Triplet = Triplet Subject PredicateList deriving (Show, Eq)
-
-data Subject = Subject Link deriving (Show, Eq)
-
-data PredicateList
-  = SinglePredicate Predicate ObjectList
-  | MultiplePredicates PredicateList PredicateList
-  deriving (Show, Eq)
-
-data Predicate = Predicate Link deriving (Show, Eq)
-
-data ObjectList
-  = SingleObject Object
-  | MultipleObjects ObjectList ObjectList
-  deriving (Show, Eq)
-
-data Object
-  = ObjectLink Link
-  | ObjectInt Int
-  | ObjectBool Bool
-  | ObjectString Literal
-  deriving (Show, Eq, Ord)
-
-data Link = Link String | Short String | Notation Literal Literal deriving (Show, Eq, Ord)
-
-data Literal = Literal String deriving (Show, Eq, Ord)
 
 sortObjs (ObjectLink ob1) (ObjectLink ob2) = compare ob1 ob2
 sortObjs (ObjectInt ob1) (ObjectInt ob2) = compare ob1 ob2
@@ -67,7 +37,7 @@ getBase (Prefix (Literal a) (Link b)) = ""
 getBase (Prefix (Literal a) (Short b)) = ""
 getBase (Prefix (Literal a) (Notation (Literal c) (Literal d))) = ""
 getBase (End a) = getBase a
-getBase (Seq a b) = (getBase a) ++ (getBase b)
+getBase (Seq a b) = (getBase a) ++ getBase b
 
 getPrefixes :: Exp -> String -> [(String, String)]
 getPrefixes (Prefix (Literal a) (Link b)) base = [(a, b)]
@@ -166,42 +136,13 @@ obToStringHelper :: [(String, String)] -> String -> [Object] -> [String]
 obToStringHelper prefixes base [] = []
 obToStringHelper prefixes base (x : xs) = (obToString prefixes base x : obToStringHelper prefixes base xs)
 
-data Expr
-  = Print Files Expr
-  | Finish Expr
-  | Path Expr Expr
-  | SimplePrint Files
-  | UnionPrint Files
-  | Where Cond
-  | Get Int
-  | Add String
-  | Delete String
-  deriving (Show, Eq)
-
-data Cond
-  = Less String Int
-  | Greater String Int
-  | LessOr String Int
-  | GreaterOr String Int
-  | EqString String String
-  | EqInt String Int
-  | EqBool String Bool
-  | NotEqString String String
-  | NotEqInt String Int
-  | NotEqBool String Bool
-  | And Cond Cond
-  | Or Cond Cond
-  deriving (Show, Eq)
-
-data Files = OneFile String | MoreFiles String Files deriving (Show, Eq)
-
 modifyTriplets :: [[String]] -> [[String]] --remove all brackets from triplet
 modifyTriplets [] = []
 modifyTriplets (x : xs) = (map noBrackets x) : modifyTriplets xs
 
 accessFiles :: Files -> [String] -- helper for getFiles, dont use
 accessFiles (OneFile a) = [a]
-accessFiles (MoreFiles a b) = [a] ++ accessFiles b
+accessFiles (MoreFiles a b) = a : accessFiles b
 
 getFiles :: Expr -> [String] -- returns list of all files mentioned in language
 getFiles (Print a b) = accessFiles a
@@ -434,45 +375,37 @@ findConditions (Print a b) = findConditions b
 findConditions (Finish a) = findConditions a
 findConditions (Path a b) = findConditions a ++ findConditions b
 
-match :: [String] -> [String] -> [(Bool, String)]
-match [] [] = []
-match (a : as) (b : bs)
-  | a == b = match as bs
-  | otherwise = (False, a) : match as bs
-
 main = do
   contents <- readFile "language.txt"
   let tokens = alexScanTokens contents
   let result = parseLang tokens
   let files = getFiles result
   let constraints = findConditions result
-  --  print constraints
-  --  printContents files constraints
-  a <- readFile "output.txt"
-  let c = lines a
-  b <- readFile "file.txt"
-  let d = lines b
-  print $ match c d
+  mapM parseTTL files
 
--- main = do
---      contents <- readFile "bar.ttl"
---      let tokens = alexScanTokens contents
---      let result = parseCalc tokens
---      let base = getBase result
---      let prefixes =getPrefixes result base
---      let triplets =getTriplets result
---      let subjPredList = map (getSubjects base prefixes) triplets
---      let predObjList = [getPredicateList base prefixes (snd a)|a<-subjPredList]
---      let obList1 =  [[getObjects base prefixes (snd b)|b<-a]|a<-predObjList]
---      let subList = map fst subjPredList
---      let predList = map (map fst) predObjList
---      let obList2 = (concat obList1)
---      let list1=[(var,v)|(var,var2)<-zip subList predList, v<-var2]
---      let list2=[(var,v)|(var,var2)<-zip list1 obList2, v<-var2]
---      let subPredObTupleList= map makeTriplet list2
---      let sortedsubPredObTupleList = sort (subPredObTupleList) --string,string,ob
---      let final = zip (map getSubPred sortedsubPredObTupleList) (obToStringHelper prefixes base (map getThird sortedsubPredObTupleList))
---      --let final = zip (map getSubPred sortedsubPredObTupleList) (map (\a -> obToString (prefixes) (base)) (map getThird sortedsubPredObTupleList))
---      let strings = [ a++" "++b++" "++c++" ."| (a,b,c)<- map makeFinalTriplet'' final]
---      let output= intercalate "\n" strings
---      writeFile "output2.txt" output
+-- takes ttl and returns expanded triplets
+
+parseTTL file = do
+  contents <- readFile file
+  let tokens = alexScanTokens contents
+  let result = parseInput tokens
+  let base = getBase result
+  let prefixes = getPrefixes result base
+  let triplets = getTriplets result
+  let subjPredList = map (getSubjects base prefixes) triplets
+  let predObjList = [getPredicateList base prefixes (snd a) | a <- subjPredList]
+  let obList1 = [[getObjects base prefixes (snd b) | b <- a] | a <- predObjList]
+  let subList = map fst subjPredList
+  let predList = map (map fst) predObjList
+  let obList2 = (concat obList1)
+  let list1 = [(var, v) | (var, var2) <- zip subList predList, v <- var2]
+  let list2 = [(var, v) | (var, var2) <- zip list1 obList2, v <- var2]
+  let subPredObTupleList = map makeTriplet list2
+  let sortedsubPredObTupleList = sort (subPredObTupleList) --string,string,ob
+  let final = zip (map getSubPred sortedsubPredObTupleList) (obToStringHelper prefixes base (map getThird sortedsubPredObTupleList))
+  let strings = [a ++ " " ++ b ++ " " ++ c ++ " ." | (a, b, c) <- map makeFinalTriplet'' final]
+  mapM print strings
+
+--let output = intercalate "\n" strings
+
+-- mapM print output

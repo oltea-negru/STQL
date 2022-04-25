@@ -1,1 +1,1 @@
-PRINT FROM UNION output.ttl output2.ttl ;
+PRINT FROM foo.ttl ;

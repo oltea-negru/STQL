@@ -1,7 +1,5 @@
 { 
 module Lexer where 
-import System.IO
-import System.Environment
 }
 
 %wrapper "posn"   
