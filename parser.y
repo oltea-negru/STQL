@@ -7,7 +7,7 @@ import Data.Function (on)
 import Data.Char
 }
 
-%name parseCalc 
+%name parseInput 
 %tokentype { Token } 
 %error { parseError }
 %token  
@@ -200,36 +200,32 @@ obToString prefixes base (ObjectString (Literal a)) =a
 obToString prefixes base (ObjectBool a) = show a
 obToString prefixes base (ObjectInt a) =show a
 
-
 obToStringHelper:: [(String,String)] -> String -> [Object] -> [String]
 obToStringHelper prefixes base [] = []
 obToStringHelper prefixes base (x:xs) = (obToString prefixes base x :obToStringHelper prefixes base xs)
 
-
-
-
-main = do
-     contents <- readFile "test.txt"
-     let tokens = alexScanTokens contents
-     let result = parseCalc tokens
-     let base = getBase result
-     let prefixes =getPrefixes result base
-     let triplets =getTriplets result
-     let subjPredList = map (getSubjects base prefixes) triplets
-     let predObjList = [getPredicateList base prefixes (snd a)|a<-subjPredList]
-     let obList1 =  [[getObjects base prefixes (snd b)|b<-a]|a<-predObjList]
-     let subList = map fst subjPredList
-     let predList = map (map fst) predObjList
-     let obList2 = (concat obList1)
-     let list1=[(var,v)|(var,var2)<-zip subList predList, v<-var2]
-     let list2=[(var,v)|(var,var2)<-zip list1 obList2, v<-var2]
-     let subPredObTupleList= map makeTriplet list2
-     let sortedsubPredObTupleList = sort (subPredObTupleList) --string,string,ob
-     let final = zip (map getSubPred sortedsubPredObTupleList) (obToStringHelper prefixes base (map getThird sortedsubPredObTupleList))
-     --let final = zip (map getSubPred sortedsubPredObTupleList) (map (\a -> obToString (prefixes) (base)) (map getThird sortedsubPredObTupleList))
-     let strings = [ a++" "++b++" "++c++" ."| (a,b,c)<- map makeFinalTriplet'' final]
-     let output= intercalate "\n" strings
-     writeFile "test.ttl" output 
+-- main = do
+--      contents <- readFile "bar.ttl"
+--      let tokens = alexScanTokens contents
+--      let result = parseCalc tokens
+--      let base = getBase result
+--      let prefixes =getPrefixes result base
+--      let triplets =getTriplets result
+--      let subjPredList = map (getSubjects base prefixes) triplets
+--      let predObjList = [getPredicateList base prefixes (snd a)|a<-subjPredList]
+--      let obList1 =  [[getObjects base prefixes (snd b)|b<-a]|a<-predObjList]
+--      let subList = map fst subjPredList
+--      let predList = map (map fst) predObjList
+--      let obList2 = (concat obList1)
+--      let list1=[(var,v)|(var,var2)<-zip subList predList, v<-var2]
+--      let list2=[(var,v)|(var,var2)<-zip list1 obList2, v<-var2]
+--      let subPredObTupleList= map makeTriplet list2
+--      let sortedsubPredObTupleList = sort (subPredObTupleList) --string,string,ob
+--      let final = zip (map getSubPred sortedsubPredObTupleList) (obToStringHelper prefixes base (map getThird sortedsubPredObTupleList))
+--      --let final = zip (map getSubPred sortedsubPredObTupleList) (map (\a -> obToString (prefixes) (base)) (map getThird sortedsubPredObTupleList))
+--      let strings = [ a++" "++b++" "++c++" ."| (a,b,c)<- map makeFinalTriplet'' final]
+--      let output= intercalate "\n" strings
+--      writeFile "output2.txt" output 
 } 
 
 

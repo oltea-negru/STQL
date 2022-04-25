@@ -15,7 +15,7 @@ $white+                                                                   ;
   \/\*(\n|.*)*\*\/                                                         ;
 "<""http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?">"  { \p s -> TokenURI p s}
   "http://www"\.$mix+\.$mix+(\/$mix+)*(\/\#$mix+)?\/?    { \p s -> TokenURIValue p s}
-  $letters+".ttl"                                        { \p s -> TokenFile p s} 
+  $mix+".ttl"                                        { \p s -> TokenFile p s} 
   "<"$mix+\/?($mix+\/?)*">"                             { \p s -> TokenShort p s}
   "@base"                                                    { \p s -> TokenBase p } 
   "@prefix"                                                  { \p s -> TokenPrefix p } 

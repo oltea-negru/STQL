@@ -1,3 +1,0 @@
-<http://www.cw.org/pprefix/A> <http://www.cw.org/pprefix/predicateC> 20 .
-<http://www.cw.org/pprefix/C> <http://www.cw.org/pprefix/predicateC> 22 .
-<http://www.cw.org/pprefix/C> <http://www.cw.org/pprefix/predicateC> <http://www.cw.org/pprefix/predicateC> .

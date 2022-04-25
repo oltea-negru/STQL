@@ -1,6 +1,10 @@
 {
-module LangParser where
-import Lexer
+module Language where 
+import Lexer 
+import Data.Typeable
+import Data.List
+import Data.Function (on)
+import Data.Char
 import System.Environment
 import System.IO
 import Control.Monad
@@ -8,7 +12,7 @@ import Data.List
 import Data.Typeable
 }
 
-%name parseCalc 
+%name parseLang 
 %tokentype { Token } 
 %error { parseError }
 %token 
@@ -166,73 +170,73 @@ printContents file constraints = do
                                     -- if its only one file it will write its contents in single.txt
                                         then do 
                                         writeFile "file.txt" ""
-                                        fileContents<-readFile $ file!!0
-                                        let line=lines fileContents
-                                        let strings=map splitTriplet line
-                                        let triplets=modifyTriplets strings
-                                        let constraint=constraints!!0
-                                        let fields=nub (getFields constraint)
-                                        if(length fields==1)
-                                            then do 
-                                                nee triplets (fields!!0) constraint
-                                        else do 
-                                                if(length fields==2)
-                                                    then do 
-                                                       let options=anthi triplets (fields!!0) constraint
-                                                       let result=anthi options (fields!!1) constraint
-                                                       print result
-                                                else do print "oops"    
+                                        -- fileContents<-readFile $ file!!0
+                                        -- let line=lines fileContents
+                                        -- let strings=map splitTriplet line
+                                        -- let triplets=modifyTriplets strings
+                                        -- let constraint=constraints!!0
+                                        -- let fields=nub (getFields constraint)
+                                        -- if(length fields==1)
+                                        --     then do 
+                                        --         nee triplets (fields!!0) constraint
+                                        -- else do 
+                                        --         if(length fields==2)
+                                        --             then do 
+                                        --                let options=anthi triplets (fields!!0) constraint
+                                        --                let result=anthi options (fields!!1) constraint
+                                        --                print result
+                                        --         else do print "oops"    
                                      -- appendFile "file.txt" (correctOutput!!0)
                                     -- if there are multiple files it will write all of their contents in more.txt
                                     else do
                                         writeFile "file.txt" ""
                                         unionFiles file
 
-nee::[[String]]->String->Cond->IO() --returns triplet that match the given condition
-nee [] field cond = return ()
-nee (x:xs) field cond = do
-                    let value=getValue field x
-                    if(value!!0/='"' && value!!0/='<')
-                    then do 
-                            let boolValue=read "True" :: Bool
-                            let intValue=read "1" :: Int
-                            let shit= read value
-                            print (typeOf shit)
-                            if ((typeOf shit)==(typeOf intValue))
-                            then do
-                                    print "s"
-                                    let bool=evalInt shit cond 
-                                    if (bool==True)
-                                        then do
-                                             print x
-                                    else do nee xs field cond
-                            else do 
-                                    if(typeOf shit==typeOf boolValue)
-                                        then do        
-                                            let bool2=evalBool shit cond
-                                            if (bool2==True)
-                                                then do 
-                                                    print x
-                                            else do nee xs field cond
-                                    else do nee xs field cond
-                    else do
-                            let bool3=evalString field value cond
-                            if(bool3==True)
-                            then do
-                                print xs
-                            else do
-                                nee xs field cond
+-- nee::[[String]]->String->Cond->IO() --returns triplet that match the given condition
+-- nee [] field cond = return ()
+-- nee (x:xs) field cond = do
+--                     let value=getValue field x
+--                     if(value!!0/='"' && value!!0/='<')
+--                     then do 
+--                             let boolValue=read "True" :: Bool
+--                             let intValue=read "1" :: Int
+--                             let shit= read value
+--                             print (typeOf shit)
+--                             if ((typeOf shit)==(typeOf intValue))
+--                             then do
+--                                     print "s"
+--                                     let bool=evalInt shit cond 
+--                                     if (bool==True)
+--                                         then do
+--                                              print x
+--                                     else do nee xs field cond
+--                             else do 
+--                                     if(typeOf shit==typeOf boolValue)
+--                                         then do        
+--                                             let bool2=evalBool shit cond
+--                                             if (bool2==True)
+--                                                 then do 
+--                                                     print x
+--                                             else do nee xs field cond
+--                                     else do nee xs field cond
+--                     else do
+--                             let bool3=evalString field value cond
+--                             if(bool3==True)
+--                             then do
+--                                 print xs
+--                             else do
+--                                 nee xs field cond
 
 
-anthi::[[String]]->String->Cond->[[String]] --returns triplet that match thr given condition
-anthi [] field cond = []
-anthi (x:xs) field cond = do
-                            let value=getValue field x
-                            let bool=evalString field value cond 
-                            if (bool==True)
-                                then do
-                                    x:anthi xs field cond
-                            else do anthi xs field cond
+-- anthi::[[String]]->String->Cond->[[String]] --returns triplet that match thr given condition
+-- anthi [] field cond = []
+-- anthi (x:xs) field cond = do
+--                             let value=getValue field x
+--                             let bool=evalString field value cond 
+--                             if (bool==True)
+--                                 then do
+--                                     x:anthi xs field cond
+--                             else do anthi xs field cond
 
 evalInt::Int ->Cond->Bool --takes value it needs to match, and outputs if condition is matched by expression
 evalInt s (Less a b)= s<b
@@ -365,12 +369,22 @@ parseError :: [Token] -> a
 parseError [] = error "error somewhere"
 parseError (b:bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++" "++ show b
 
-main = do
-     contents <- readFile "language.txt"
-     let tokens = alexScanTokens contents
-     let result = parseCalc tokens
-     let files = getFiles result
-     let constraints = findConditions result
-     print constraints
-     printContents files constraints
+match::[String]->[String]->[(Bool,String)]
+match [] [] = []
+match (a:as) (b:bs) | a==b =match as bs
+                    | otherwise = (False,a):match as bs
+
+-- main = do
+--      contents <- readFile "language.txt"
+--      let tokens = alexScanTokens contents
+--      let result = parseCalc tokens
+--      let files = getFiles result
+--      let constraints = findConditions result
+--     --  print constraints
+--     --  printContents files constraints
+--      a <- readFile "output.txt"
+--      let c = lines a
+--      b <- readFile "file.txt"
+--      let d=lines b
+--      print $ match c d
 }

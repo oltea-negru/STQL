@@ -1,1 +1,1 @@
-PRINT FROM test.ttl WHERE OBJ > 10 AND OBJ < 30 ;
+PRINT FROM UNION output.ttl output2.ttl ;
