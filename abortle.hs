@@ -8,16 +8,19 @@
 module Abortle where
 
 import Control.Monad ()
+import Control.Monad.Cont (cont)
 import Data.Char ()
 import Data.Function (on)
 import Data.List (intercalate, nub, sort)
-import Data.Typeable ()
+import Data.Typeable (typeOf)
 import Lang (Cond (And, EqBool, EqInt, EqString, Greater, GreaterOr, Less, LessOr, NotEqBool, NotEqInt, NotEqString, Or), Expr (Add, Delete, Finish, Get, Path, Print, SimplePrint, UnionPrint, Where), Files (MoreFiles, OneFile), parseLang)
 import Lexer
 import Parser (Exp (End, Prefix, Seq, TheBase, Triplets), Link (Link, Notation, Short), Literal (Literal), Object (ObjectBool, ObjectInt, ObjectLink, ObjectString), ObjectList (MultipleObjects, SingleObject), Predicate (Predicate), PredicateList (MultiplePredicates, SinglePredicate), Subject (Subject), Triplet (Triplet), parseInput)
 import System.Environment ()
 import System.IO ()
+import Text.XHtml (input)
 
+sortObjs :: Object -> Object -> Ordering
 sortObjs (ObjectLink ob1) (ObjectLink ob2) = compare ob1 ob2
 sortObjs (ObjectInt ob1) (ObjectInt ob2) = compare ob1 ob2
 sortObjs (ObjectBool ob1) (ObjectBool ob2) = compare ob1 ob2
@@ -155,45 +158,33 @@ getFiles (UnionPrint a) = accessFiles a
 getFiles (Finish a) = getFiles a
 getFiles (Path a b) = getFiles a ++ getFiles b
 
-unionFiles :: [String] -> IO () -- take the content of all files and
-unionFiles [] = do
-  a <- readFile "file.txt"
-  let b = lines a
-  let c = nub b
-  let d = unlines c
-  writeFile "output.txt" d
-unionFiles (x : xs) = do
-  a <- readFile x
-  appendFile "file.txt" $ a ++ "\n"
-  unionFiles xs
-
-printContents :: [String] -> [Cond] -> IO ()
-printContents file constraints = do
-  if (length file == 1)
-    then -- if its only one file it will write its contents in single.txt
-    do
-      writeFile "file.txt" ""
-    else -- fileContents<-readFile $ file!!0
-    -- let line=lines fileContents
-    -- let strings=map splitTriplet line
-    -- let triplets=modifyTriplets strings
-    -- let constraint=constraints!!0
-    -- let fields=nub (getFields constraint)
-    -- if(length fields==1)
-    --     then do
-    --         nee triplets (fields!!0) constraint
-    -- else do
-    --         if(length fields==2)
-    --             then do
-    --                let options=anthi triplets (fields!!0) constraint
-    --                let result=anthi options (fields!!1) constraint
-    --                print result
-    --         else do print "oops"
-    -- appendFile "file.txt" (correctOutput!!0)
-    -- if there are multiple files it will write all of their contents in more.txt
-    do
-      writeFile "file.txt" ""
-      unionFiles file
+-- printContents :: [String] -> [Cond] -> IO ()
+-- printContents file constraints = do
+--   if (length file == 1)
+--     then -- if its only one file it will write its contents in single.txt
+--     do
+--       writeFile "file.txt" ""
+--     else -- fileContents<-readFile $ file!!0
+--     -- let line=lines fileContents
+--     -- let strings=map splitTriplet line
+--     -- let triplets=modifyTriplets strings
+--     -- let constraint=constraints!!0
+--     -- let fields=nub (getFields constraint)
+--     -- if(length fields==1)
+--     --     then do
+--     --         nee triplets (fields!!0) constraint
+--     -- else do
+--     --         if(length fields==2)
+--     --             then do
+--     --                let options=anthi triplets (fields!!0) constraint
+--     --                let result=anthi options (fields!!1) constraint
+--     --                print result
+--     --         else do print "oops"
+--     -- appendFile "file.txt" (correctOutput!!0)
+--     -- if there are multiple files it will write all of their contents in more.txt
+--     do
+--       writeFile "file.txt" ""
+--       unionFiles file
 
 -- nee::[[String]]->String->Cond->IO() --returns triplet that match the given condition
 -- nee [] field cond = return ()
@@ -381,13 +372,25 @@ main = do
   let result = parseLang tokens
   let files = getFiles result
   let constraints = findConditions result
-  mapM parseTTL files
+  parseTTL (unionFiles files)
 
 -- takes ttl and returns expanded triplets
 
-parseTTL file = do
-  contents <- readFile file
-  let tokens = alexScanTokens contents
+-- take the content of all files and
+
+unionFiles :: [FilePath] -> IO String
+unionFiles [] = return ""
+unionFiles (x : xs) = do
+  a <- readFile x
+  do
+    bs <- unionFiles xs
+    return (a ++ bs)
+
+parseTTL :: IO String -> IO [()]
+parseTTL content = do
+  input <- content
+  print (typeOf content)
+  let tokens = alexScanTokens input
   let result = parseInput tokens
   let base = getBase result
   let prefixes = getPrefixes result base
@@ -405,7 +408,3 @@ parseTTL file = do
   let final = zip (map getSubPred sortedsubPredObTupleList) (obToStringHelper prefixes base (map getThird sortedsubPredObTupleList))
   let strings = [a ++ " " ++ b ++ " " ++ c ++ " ." | (a, b, c) <- map makeFinalTriplet'' final]
   mapM print strings
-
---let output = intercalate "\n" strings
-
--- mapM print output
