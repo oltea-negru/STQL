@@ -19,7 +19,7 @@ import Lexer
 import Parser (Exp (End, Prefix, Seq, TheBase, Triplets), Link (Link, Notation, Short), Literal (Literal), Object (ObjectBool, ObjectInt, ObjectLink, ObjectString), ObjectList (MultipleObjects, SingleObject), Predicate (Predicate), PredicateList (MultiplePredicates, SinglePredicate), Subject (Subject), Triplet (Triplet), parseInput)
 import System.Environment ()
 import System.IO ()
-import Text.XHtml (input)
+import Text.XHtml (fieldset, input)
 
 sortObjs :: Object -> Object -> Ordering
 sortObjs (ObjectLink ob1) (ObjectLink ob2) = compare ob1 ob2
@@ -346,16 +346,24 @@ main = do
   let files = getFiles result
   let constraints = findConditions result
   print constraints
-  let triplets = parseTTL (unionFiles files)
-  execute triplets (head constraints)
+  a <- parseFiles files
+  let triplets = unionFiles a
+  mapM print triplets
 
-unionFiles :: [FilePath] -> IO String -- works
+-- execute triplets (head constraints)
+
+parseFiles :: [FilePath] -> IO [String]
+parseFiles [] = return []
+parseFiles (x : xs) = do
+  result <- parseTTL (readFile x)
+  next <- parseFiles xs
+  return (result ++ next)
+
+unionFiles :: [String] -> [String] -- works
 unionFiles [] = return ""
 unionFiles (x : xs) = do
-  a <- readFile x
-  do
-    bs <- unionFiles xs
-    return (a ++ bs)
+  bs <- unionFiles xs
+  return (x ++ bs)
 
 parseTTL :: IO String -> IO [String] -- works
 parseTTL content = do
