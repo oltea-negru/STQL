@@ -8,7 +8,6 @@
 module Abortle where
 
 import Control.Monad ()
-import Control.Monad.Cont (cont)
 import Data.Char ()
 import Data.Function (on)
 import Data.List (intercalate, nub, sort)
@@ -19,9 +18,8 @@ import Lexer
 import Parser (Exp (End, Prefix, Seq, TheBase, Triplets), Link (Link, Notation, Short), Literal (Literal), Object (ObjectBool, ObjectInt, ObjectLink, ObjectString), ObjectList (MultipleObjects, SingleObject), Predicate (Predicate), PredicateList (MultiplePredicates, SinglePredicate), Subject (Subject), Triplet (Triplet), parseInput)
 import System.Environment ()
 import System.IO ()
-import Text.XHtml (fieldset, input)
 
-sortObjs :: Object -> Object -> Ordering
+sortObjs :: Object -> Object -> Ordering --DEFINATELY 1000000% WORKS 
 sortObjs (ObjectLink ob1) (ObjectLink ob2) = compare ob1 ob2
 sortObjs (ObjectInt ob1) (ObjectInt ob2) = compare ob1 ob2
 sortObjs (ObjectBool ob1) (ObjectBool ob2) = compare ob1 ob2
@@ -254,6 +252,7 @@ getFields (EqBool a b) = [a]
 getFields (And a b) = getFields a ++ getFields b
 getFields (Or a b) = getFields a ++ getFields b
 
+
 findConditions :: Expr -> [Cond] --returns conditions in query
 findConditions (SimplePrint a) = []
 findConditions (UnionPrint a) = []
@@ -348,7 +347,8 @@ main = do
   print constraints
   a <- parseFiles files
   let triplets = unionFiles a
-  mapM print triplets
+  print triplets
+
 
 -- execute triplets (head constraints)
 

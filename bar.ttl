@@ -14,4 +14,3 @@ t:subjectE p:predicateE t:objectE .
 <prob4B> <testPredA> <prob4C> .
 <prob4D> <testPredB> <prob4E> .
 <prob4F> <testPredC> <prob4A> .
-

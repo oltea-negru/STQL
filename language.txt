@@ -1,1 +1,1 @@
-PRINT FROM UNION foo.ttl bar.ttl foo.ttl ;
+PRINT FROM UNION foo.ttl bar.ttl;
