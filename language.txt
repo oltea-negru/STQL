@@ -1,1 +1,1 @@
-PRINT FROM UNION foo.ttl bar.ttl foo.ttl ;
+PRINT FROM foo.ttl WHERE OBJ=SUB IN bar.ttl ADD PRINT from bar.ttl WHERE SUB=OBJ in foo.ttl ;
