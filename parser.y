@@ -23,7 +23,7 @@ import Lexer
 %%
 Start: Triplet                { Triplets $1 }
      | base Link              { TheBase $2 }
-     | prefix Lit ':' Link   { Prefix $2 $4 }
+     | prefix Lit ':' Link    { Prefix $2 $4 }
      | Start '.' Start        { Seq $1 $3 }
      | Start '.'              { End $1 }
 

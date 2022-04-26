@@ -14,7 +14,7 @@ import Data.Function (on)
 import Data.List (intercalate, nub, sort)
 import Data.Typeable (typeOf)
 import GHC.Base (VecElem (Int16ElemRep))
-import Lang (Cond (And, EqBool, EqInt, EqString, Greater, GreaterOr, Less, LessOr, NotEqBool, NotEqInt, NotEqString, Or), Expr (Add, Delete, Finish, Get, Path, Print, SimplePrint, UnionPrint, Where), Files (MoreFiles, OneFile), parseLang)
+import Lang (Cond (And, EqBool, EqInt, EqString, Greater, GreaterOr, Less, LessOr, NotEqBool, NotEqInt, NotEqString, Or), Files (MoreFiles, OneFile), parseLang)
 import Lexer
 import Parser (Exp (End, Prefix, Seq, TheBase, Triplets), Link (Link, Notation, Short), Literal (Literal), Object (ObjectBool, ObjectInt, ObjectLink, ObjectString), ObjectList (MultipleObjects, SingleObject), Predicate (Predicate), PredicateList (MultiplePredicates, SinglePredicate), Subject (Subject), Triplet (Triplet), parseInput)
 import System.Environment ()
@@ -148,16 +148,16 @@ accessFiles :: Files -> [String] -- helper for getFiles, dont use
 accessFiles (OneFile a) = [a]
 accessFiles (MoreFiles a b) = a : accessFiles b
 
-getFiles :: Expr -> [String] -- returns list of all files mentioned in language
-getFiles (Print a b) = accessFiles a
-getFiles (SimplePrint a) = accessFiles a
-getFiles (Where a) = []
-getFiles (Get a) = []
-getFiles (Add a) = []
-getFiles (Delete a) = []
-getFiles (UnionPrint a) = accessFiles a
-getFiles (Finish a) = getFiles a
-getFiles (Path a b) = getFiles a ++ getFiles b
+-- getFiles :: Expr -> [String] -- returns list of all files mentioned in language
+-- getFiles (Print a b) = accessFiles a
+-- getFiles (SimplePrint a) = accessFiles a
+-- getFiles (Where a) = []
+-- getFiles (Get a) = []
+-- getFiles (Add a) = []
+-- getFiles (Delete a) = []
+-- getFiles (UnionPrint a) = accessFiles a
+-- getFiles (Finish a) = getFiles a
+-- getFiles (Path a b) = getFiles a ++ getFiles b
 
 evalInt :: Int -> Cond -> Bool --takes value it needs to match, and outputs if condition is matched by expression
 evalInt s (Less a b) = s < b
@@ -254,16 +254,16 @@ getFields (EqBool a b) = [a]
 getFields (And a b) = getFields a ++ getFields b
 getFields (Or a b) = getFields a ++ getFields b
 
-findConditions :: Expr -> [Cond] --returns conditions in query
-findConditions (SimplePrint a) = []
-findConditions (UnionPrint a) = []
-findConditions (Get a) = []
-findConditions (Add a) = []
-findConditions (Delete a) = []
-findConditions (Where a) = [a]
-findConditions (Print a b) = findConditions b
-findConditions (Finish a) = findConditions a
-findConditions (Path a b) = findConditions a ++ findConditions b
+-- findConditions :: Expr -> [Cond] --returns conditions in query
+-- findConditions (SimplePrint a) = []
+-- findConditions (UnionPrint a) = []
+-- findConditions (Get a) = []
+-- findConditions (Add a) = []
+-- findConditions (Delete a) = []
+-- findConditions (Where a) = [a]
+-- findConditions (Print a b) = findConditions b
+-- findConditions (Finish a) = findConditions a
+-- findConditions (Path a b) = findConditions a ++ findConditions b
 
 andOr :: Cond -> String
 andOr (Or a b) = "or"
@@ -343,12 +343,14 @@ main = do
   contents <- readFile "language.txt"
   let tokens = alexScanTokens contents
   let result = parseLang tokens
-  let files = getFiles result
-  let constraints = findConditions result
-  print constraints
-  a <- parseFiles files
-  let triplets = unionFiles a
-  mapM print triplets
+  print result
+
+-- let files = getFiles result
+-- let constraints = findConditions result
+-- print constraints
+-- a <- parseFiles files
+-- let triplets = unionFiles a
+-- mapM print triplets
 
 -- execute triplets (head constraints)
 

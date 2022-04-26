@@ -32,6 +32,9 @@ $white+                                                                   ;
   DELETE                                                     { \p s -> TokenDelete p}
   RESTRICT                                                   { \p s -> TokenRestrict p}  
   GET                                                        { \p s -> TokenGet p}
+  THEN                                                       { \p s -> TokenThen p}
+  LINK                                                       { \p s -> TokenLink p}
+  IN                                                         { \p s -> TokenIn p}
   \-?$number+                                                { \p s -> TokenInt p (read s) }
   \+?$number+                                                { \p s -> TokenInt p (read (drop 1 s)) }
   \"$mix+\"                                                  { \p s -> TokenLiteral p s }
@@ -78,9 +81,11 @@ data Token =
   TokenComment AlexPosn           |
   TokenOr AlexPosn                |
   TokenFrom AlexPosn              |
+  TokenIn AlexPosn                |
   TokenEquals AlexPosn            |
   TokenNot AlexPosn               |
   TokenAdd AlexPosn               |
+  TokenThen AlexPosn              |
   TokenDelete AlexPosn            |
   TokenChange AlexPosn            | 
   TokenRestrict AlexPosn          |
@@ -89,6 +94,7 @@ data Token =
   TokenFile AlexPosn String       |
   TokenLBrack AlexPosn            |
   TokenRBrack AlexPosn            |
+  TokenLink   AlexPosn            |
   TokenTrue AlexPosn Bool         |
   TokenFalse AlexPosn Bool
   deriving (Eq, Show)
@@ -100,8 +106,7 @@ tokenPosn (TokenPrefix (AlexPn _ x y) ) = show  x ++":"++show y
 tokenPosn (TokenLiteral (AlexPn _ x y) a) = show  x ++":"++show y
 tokenPosn (TokenColon (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenQuote (AlexPn _ x y)) = show  x ++":"++show y
-
-
+tokenPosn (TokenThen (AlexPn _ x y))=show x ++ ":" ++ show y
 tokenPosn (TokenURI (AlexPn _ x y) s) = show  x ++":"++show y
 tokenPosn (TokenPrint (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenWhere (AlexPn _ x y)) = show  x ++":"++show y
@@ -130,4 +135,8 @@ tokenPosn (TokenRBrack (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenTrue (AlexPn _ x y)s) = show  x ++":"++show y
 tokenPosn (TokenFalse (AlexPn _ x y)s) = show  x ++":"++show y
 tokenPosn (TokenDot (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenIn (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenLink (AlexPn _ x y)) = show  x ++":"++show y
+tokenPosn (TokenSemiColon (AlexPn _ x y))= show  x ++":"++show y
+tokenPosn a =show a
 }
