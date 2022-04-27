@@ -298,20 +298,19 @@ executeConditions file constraint = do
           print "no"
           return [[]]
 
-executeLinking::IO String->(String,String,String)->IO [[String]]
-executeLinking file (field,linkedField,linkedFile)=do
+executeLinking:: IO [String]->[(String,String,String)]->IO [[String]]
+executeLinking file [(field,linkedField,linkedFile)]=do
   contents <- file
-  let line=lines contents
-  let strings = map splitTriplet line
+  -- let line=lines contents
+  let strings = map splitTriplet contents
   let triplets = modifyTriplets strings
   contents2<- readFile (linkedFile)
   let line2=lines contents2
   let linkedStrings= map splitTriplet line2
   let linkedTriplets= modifyTriplets linkedStrings
   let listOfResults=mapM (anthi linkedTriplets linkedField field) triplets
-  z<-listOfResults
-  print z
-  return []
+  strip<-listOfResults
+  return strip
 
 anthi::[[String]]->String->String->[String]-> IO [String]
 anthi [] a b c = return []
@@ -336,7 +335,6 @@ nee (x : xs) field cond = do
           let bool = evalBool value cond
           if (bool)
             then do
-              print x
               next <- nee xs field cond
               return ([x] ++ next)
             else do
@@ -346,7 +344,6 @@ nee (x : xs) field cond = do
           let bool = evalInt value cond
           if (bool)
             then do
-              print x
               next <- nee xs field cond
               return ([x] ++ next)
             else do
@@ -355,11 +352,26 @@ nee (x : xs) field cond = do
       let bool = evalString field v cond
       if (bool)
         then do
-          print x
           next <- nee xs field cond
           return ([x] ++ next)
         else do
           nee xs field cond
+
+evaluate ::[IO [FilePath]]->[[Cond]]->[[(String,String,String)]]->IO [[String]]
+evaluate [] [] [] =return []
+evaluate (files:fileList) (cond:condList) (link:linkList) = do
+  if(cond/=[])
+    then do 
+      result<-executeConditions files (head cond)
+      next<-evaluate fileList condList linkList
+      return(result++next)
+    else 
+      do
+        result<-executeLinking files link
+        next<-evaluate fileList condList linkList
+        return(result++next)
+
+
 
 main = do
   contents <- readFile "language.txt"
@@ -368,51 +380,13 @@ main = do
   let instructionsList = getInstructions result --[Instructions]
   let conditions = map getConditions instructionsList --[[Cond]]
   let links=map getLinks instructionsList
-  let files = map getFiles instructionsList -- [[String]]
-  let a= parseFiles $ head files --IO[String]
-  let passthis=readFile $ head $ files !! 1
-  -- mapM (putStrLn) a
-  -- executeConditions a conditions)
-  print links
-  executeLinking passthis (head $ links !!1)
+  let files=map getFiles instructionsList -- [[String]]
+  let parsedFiles= map parseFiles files --IO[String]
+  results<- evaluate parsedFiles  conditions links
+  let stuff=map unwords results
+  print (typeOf stuff)
+  mapM (putStrLn) stuff
 
-
-
-
-
-
---mapM parseTTL a
-
---let triplets = unionFiles (concat a)
---print triplets
-
--- executeConditions triplets (head constraints)
-
--- anthi :: [FilePath] -> IO [String]
--- anthi [] = return []
--- anthi (x : xs) = do
---   result <- readFile x
---   next <- parseFiles xs
---   return (result ++ next)
-
--- parseFiles :: [FilePath] -> IO [String]
--- parseFiles [] = return []
--- parseFiles (x : xs) = do
---   result <- parseTTL (readFile x)
---   next <- parseFiles xs
---   return (result ++ next)
-
--- unionFiles :: [String] -> [String] -- works
--- unionFiles [] = return ""
--- unionFiles (x : xs) = do
---   bs <- unionFiles xs
---   return (x ++ bs)
--- function :: [String] -> [(String, String, Object)]
--- function [] = []
--- function (x : xs) = do
---   let a = readFile x
---   let b = parseTTL a
---   return (b ++ funtcion xs)
 parseFiles :: [FilePath] -> IO [String]
 parseFiles [] = return []
 parseFiles (x : xs) = do
