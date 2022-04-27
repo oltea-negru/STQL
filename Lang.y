@@ -7,16 +7,13 @@ import Lexer
 %tokentype { Token } 
 %error { parseError }
 %token 
-  '('                  { TokenLBrack p}  
   ';'                  { TokenSemiColon p}  
-  ')'                  { TokenRBrack p} 
   '<'                  { TokenLess p}
   '>'                  { TokenGreater p}
   '<='                 { TokenLessEq p}
   '>='                 { TokenGreaterEq p}
   '='                  { TokenEquals p }
   NOT                  { TokenNot p}
-  ','                  { TokenComma p}
   int                  { TokenInt p $$ }
   lit                  { TokenLiteral p $$} 
   TRUE                 { TokenTrue p $$}
@@ -30,11 +27,10 @@ import Lexer
   AND                  { TokenAnd p}
   OR                   { TokenOr p}
   FROM                 { TokenFrom p}
-  ADD                  { TokenAdd p}
-  DELETE               { TokenDelete p}
-  RESTRICT             { TokenRestrict p}  
-  GET                  { TokenGet p}
   URI                  { TokenURIValue p $$}
+  THEN                 { TokenThen p}
+  IN                   { TokenIn p}
+  LINK                 { TokenLink p}
   file                 { TokenFile p $$}
  
 
@@ -42,35 +38,41 @@ import Lexer
 %left AND OR '=' NOT
 %%
 
-Exp: PRINT FROM File  { SimplePrint $3}
-   | PRINT FROM UNION File { UnionPrint $4}
-   | Exp ';'          { Finish $1}
-   | Exp Seq ';'      { Path $1 $2}       
-  
-Seq: WHERE Cond                           { Where $2}  
-   | GET Number                           { Get $2}
-   | ADD URI                              { Add $2}
-   | DELETE URI                           { Delete $2}
+Exp: Instruction  ';'     {Instruction $1}
+   | Instruction THEN Exp     {Instructions $1 $3}
+   
 
-Cond: SUB '=' Uri                     { EqString $1 $3}
+Instruction:  PRINT FROM File       { Print $3}
+            | PRINT FROM UNION File { Union $4}
+            | Instruction Seq       { Tasks $1 $2}       
+  
+Seq:  WHERE LINK Field '=' Field IN File     { Linking $3 $5 $7}
+    | WHERE Cond                             { Where $2}   
+
+
+Cond:              
+      SUB '=' Uri                     { EqString $1 $3}
     | PRED '=' Uri                    { EqString $1 $3}
     | OBJ '=' Uri                     { EqString $1 $3}
-    | OBJ '>' Number                   { Greater $1 $3 } 
-    | OBJ '<=' Number                  { LessOr $1 $3 }       
-    | OBJ '>=' Number                  { GreaterOr $1 $3 } 
-    | OBJ '<' Number                   { Less $1 $3 } 
-    | OBJ '=' Bool                     { EqBool $1 $3}
-    | OBJ '=' Lit                      { EqString $1 $3}
-    | OBJ '=' Number                   { EqInt $1 $3}
+    | OBJ '>' Number                  { Greater $1 $3 } 
+    | OBJ '<=' Number                 { LessOr $1 $3 }       
+    | OBJ '>=' Number                 { GreaterOr $1 $3 } 
+    | OBJ '<' Number                  { Less $1 $3 } 
+    | OBJ '=' Bool                    { EqBool $1 $3}
+    | OBJ '=' Lit                     { EqString $1 $3}
+    | OBJ '=' Number                  { EqInt $1 $3}
     | SUB NOT Uri                     { NotEqString $1 $3}
     | PRED NOT Uri                    { NotEqString $1 $3}
     | OBJ NOT Uri                     { NotEqString $1 $3}
-    | OBJ NOT Lit                      { NotEqString $1 $3}
-    | OBJ NOT Number                   { NotEqInt $1 $3}
-    | OBJ NOT Bool                     { NotEqBool $1 $3}
-    | Cond AND Cond                    { And $1 $3}
-    | Cond OR Cond                     { Or $1 $3}
+    | OBJ NOT Lit                     { NotEqString $1 $3}
+    | OBJ NOT Number                  { NotEqInt $1 $3}
+    | OBJ NOT Bool                    { NotEqBool $1 $3}
+    | Cond AND Cond                   { And $1 $3}
+    | Cond OR Cond                    { Or $1 $3}
 
+Field: SUB {$1}
+     | PRED {$1}
+     | OBJ {$1}
 Uri: URI {$1}
 Lit: lit {$1}
 Number: int {$1}
@@ -86,15 +88,15 @@ parseError :: [Token] -> a
 parseError [] = error "No Tokens"
 parseError (b : bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++ " " ++ show b
 
-data Expr=  Print Files Expr 
-          | Finish Expr
-          | Path Expr Expr
-          | SimplePrint Files
-          | UnionPrint Files
-          | Where Cond
-          | Get Int
-          | Add String 
-          | Delete String 
+data Instr=Instruction Expr | Instructions Expr Instr deriving (Show,Eq)
+
+data Expr=  Tasks Expr Seq
+          | Print Files
+          | Union Files
+         deriving (Show,Eq)
+          
+data Seq =  Where Cond
+          | Linking String String Files
          deriving (Show,Eq)
 
 data Cond = Less String Int 

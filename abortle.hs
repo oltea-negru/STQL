@@ -12,8 +12,7 @@ import Data.Char ()
 import Data.Function (on)
 import Data.List (intercalate, nub, sort)
 import Data.Typeable (typeOf)
-import GHC.Base (VecElem (Int16ElemRep))
-import Lang (Cond (And, EqBool, EqInt, EqString, Greater, GreaterOr, Less, LessOr, NotEqBool, NotEqInt, NotEqString, Or), Expr (Add, Delete, Finish, Get, Path, Print, SimplePrint, UnionPrint, Where), Files (MoreFiles, OneFile), parseLang)
+import Lang (Cond (And, EqBool, EqInt, EqString, Greater, GreaterOr, Less, LessOr, NotEqBool, NotEqInt, NotEqString, Or), Expr ( Print, Tasks, Union), Files (MoreFiles, OneFile), Instr (Instruction, Instructions), Seq (Linking, Where), parseLang)
 import Lexer
 import Parser (Exp (End, Prefix, Seq, TheBase, Triplets), Link (Link, Notation, Short), Literal (Literal), Object (ObjectBool, ObjectInt, ObjectLink, ObjectString), ObjectList (MultipleObjects, SingleObject), Predicate (Predicate), PredicateList (MultiplePredicates, SinglePredicate), Subject (Subject), Triplet (Triplet), parseInput)
 import System.Environment ()
@@ -147,15 +146,9 @@ accessFiles (OneFile a) = [a]
 accessFiles (MoreFiles a b) = a : accessFiles b
 
 getFiles :: Expr -> [String] -- returns list of all files mentioned in language
-getFiles (Print a b) = accessFiles a
-getFiles (SimplePrint a) = accessFiles a
-getFiles (Where a) = []
-getFiles (Get a) = []
-getFiles (Add a) = []
-getFiles (Delete a) = []
-getFiles (UnionPrint a) = accessFiles a
-getFiles (Finish a) = getFiles a
-getFiles (Path a b) = getFiles a ++ getFiles b
+getFiles (Union a) = accessFiles a
+getFiles (Print a) = accessFiles a
+getFiles (Tasks a b) = getFiles a
 
 evalInt :: Int -> Cond -> Bool --takes value it needs to match, and outputs if condition is matched by expression
 evalInt s (Less a b) = s < b
@@ -227,10 +220,10 @@ evalBool s (Or a b) = evalBool s a || evalBool s b
 evalBool s _ = False
 
 makeInt :: String -> Int --reads string to int
-makeInt a = read a
+makeInt = read
 
 splitTriplet :: String -> [String] --splits line into triplet
-splitTriplet triplet = words triplet
+splitTriplet = words
 
 getValue :: String -> [String] -> String --returns required part of triplet depending on field
 getValue field triplet
@@ -252,24 +245,34 @@ getFields (EqBool a b) = [a]
 getFields (And a b) = getFields a ++ getFields b
 getFields (Or a b) = getFields a ++ getFields b
 
-
-findConditions :: Expr -> [Cond] --returns conditions in query
-findConditions (SimplePrint a) = []
-findConditions (UnionPrint a) = []
-findConditions (Get a) = []
-findConditions (Add a) = []
-findConditions (Delete a) = []
+findConditions :: Seq -> [Cond]
+findConditions (Linking a b c) = [] --returns conditions in query
 findConditions (Where a) = [a]
-findConditions (Print a b) = findConditions b
-findConditions (Finish a) = findConditions a
-findConditions (Path a b) = findConditions a ++ findConditions b
+
+getConditions :: Expr -> [Cond]
+getConditions (Tasks a b) = findConditions b ++ getConditions a
+getConditions (Print a) = []
+getConditions (Union a) = []
+
+findLinks::Seq->[(String,String,String)]
+findLinks (Where a)=[]
+findLinks (Linking a b c)=(a,b, head $ accessFiles c):[]
+
+getLinks::Expr->[(String,String,String)]
+getLinks (Tasks a b)=getLinks a++findLinks b
+getLinks (Print a)=[]
+getLinks (Union a)=[]
+
+getInstructions :: Instr -> [Expr]
+getInstructions (Instruction a) = a : []
+getInstructions (Instructions a b) = [a] ++ getInstructions b
 
 andOr :: Cond -> String
 andOr (Or a b) = "or"
 andOr (And a b) = "and"
 
-execute :: IO [String] -> Cond -> IO [[String]]
-execute file constraint = do
+executeConditions :: IO [String] -> Cond -> IO [[String]]
+executeConditions file constraint = do
   line <- file
   let strings = map splitTriplet line
   let triplets = modifyTriplets strings
@@ -293,13 +296,30 @@ execute file constraint = do
           print "no"
           return [[]]
 
--- else do
---         if(length fields==2)
---             then do
---                let options=anthi triplets (fields!!0) constraint
---                let result=anthi options (fields!!1) constraint
---                print result
---         else do print "oops"
+executeLinking:: IO [String]->[(String,String,String)]->IO [[String]]
+executeLinking file [(field,linkedField,linkedFile)]=do
+  contents <- file
+  -- let line=lines contents
+  let strings = map splitTriplet contents
+  let triplets = modifyTriplets strings
+  contents2<- readFile (linkedFile)
+  let line2=lines contents2
+  let linkedStrings= map splitTriplet line2
+  let linkedTriplets= modifyTriplets linkedStrings
+  let listOfResults=mapM (anthi linkedTriplets linkedField field) triplets
+  strip<-listOfResults
+  return strip
+
+anthi::[[String]]->String->String->[String]-> IO [String]
+anthi [] a b c = return []
+anthi (x:xs) linkedField field triplet= do
+  let linkedValue=getValue linkedField x
+  let value=getValue field triplet
+  if(value==linkedValue)
+    then do
+      return triplet
+    else do
+      anthi xs linkedField field triplet
 
 nee :: [[String]] -> String -> Cond -> IO [[String]] --returns triplet that match the given condition
 nee [] field cond = return []
@@ -313,7 +333,6 @@ nee (x : xs) field cond = do
           let bool = evalBool value cond
           if (bool)
             then do
-              print x
               next <- nee xs field cond
               return ([x] ++ next)
             else do
@@ -323,7 +342,6 @@ nee (x : xs) field cond = do
           let bool = evalInt value cond
           if (bool)
             then do
-              print x
               next <- nee xs field cond
               return ([x] ++ next)
             else do
@@ -332,25 +350,40 @@ nee (x : xs) field cond = do
       let bool = evalString field v cond
       if (bool)
         then do
-          print x
           next <- nee xs field cond
           return ([x] ++ next)
         else do
           nee xs field cond
 
+evaluate ::[IO [FilePath]]->[[Cond]]->[[(String,String,String)]]->IO [[String]]
+evaluate [] [] [] =return []
+evaluate (files:fileList) (cond:condList) (link:linkList) = do
+  if(cond/=[])
+    then do 
+      result<-executeConditions files (head cond)
+      next<-evaluate fileList condList linkList
+      return(result++next)
+    else 
+      do
+        result<-executeLinking files link
+        next<-evaluate fileList condList linkList
+        return(result++next)
+
+
+
 main = do
   contents <- readFile "language.txt"
   let tokens = alexScanTokens contents
   let result = parseLang tokens
-  let files = getFiles result
-  let constraints = findConditions result
-  print constraints
-  a <- parseFiles files
-  let triplets = unionFiles a
-  print triplets
-
-
--- execute triplets (head constraints)
+  let instructionsList = getInstructions result --[Instructions]
+  let conditions = map getConditions instructionsList --[[Cond]]
+  let links=map getLinks instructionsList
+  let files=map getFiles instructionsList -- [[String]]
+  let parsedFiles= map parseFiles files --IO[String]
+  results<- evaluate parsedFiles  conditions links
+  let stuff=map unwords results
+  print (typeOf stuff)
+  mapM (putStrLn) stuff
 
 parseFiles :: [FilePath] -> IO [String]
 parseFiles [] = return []

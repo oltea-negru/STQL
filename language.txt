@@ -1,1 +1,3 @@
+
 PRINT FROM UNION foo.ttl bar.ttl;
+
