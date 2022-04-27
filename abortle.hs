@@ -13,13 +13,12 @@ import Data.Char ()
 import Data.Function (on)
 import Data.List (intercalate, nub, sort)
 import Data.Typeable (typeOf)
-import GHC.Base (VecElem (Int16ElemRep))
-import Lang (Cond (And, EqBool, EqInt, EqString, Greater, GreaterOr, Less, LessOr, NotEqBool, NotEqInt, NotEqString, Or), Files (MoreFiles, OneFile), parseLang)
+import Lang (Cond (And, EqBool, EqInt, EqString, Greater, GreaterOr, Less, LessOr, NotEqBool, NotEqInt, NotEqString, Or), Expr (Finish, Print, Tasks, Union), Files (MoreFiles, OneFile), Instr (Instruction, Instructions), Seq (Linking, Where), parseLang)
 import Lexer
 import Parser (Exp (End, Prefix, Seq, TheBase, Triplets), Link (Link, Notation, Short), Literal (Literal), Object (ObjectBool, ObjectInt, ObjectLink, ObjectString), ObjectList (MultipleObjects, SingleObject), Predicate (Predicate), PredicateList (MultiplePredicates, SinglePredicate), Subject (Subject), Triplet (Triplet), parseInput)
 import System.Environment ()
 import System.IO ()
-import Text.XHtml (fieldset, input)
+import Text.XHtml (base, fieldset, input)
 
 sortObjs :: Object -> Object -> Ordering
 sortObjs (ObjectLink ob1) (ObjectLink ob2) = compare ob1 ob2
@@ -148,16 +147,11 @@ accessFiles :: Files -> [String] -- helper for getFiles, dont use
 accessFiles (OneFile a) = [a]
 accessFiles (MoreFiles a b) = a : accessFiles b
 
--- getFiles :: Expr -> [String] -- returns list of all files mentioned in language
--- getFiles (Print a b) = accessFiles a
--- getFiles (SimplePrint a) = accessFiles a
--- getFiles (Where a) = []
--- getFiles (Get a) = []
--- getFiles (Add a) = []
--- getFiles (Delete a) = []
--- getFiles (UnionPrint a) = accessFiles a
--- getFiles (Finish a) = getFiles a
--- getFiles (Path a b) = getFiles a ++ getFiles b
+getFiles :: Expr -> [String] -- returns list of all files mentioned in language
+getFiles (Union a) = accessFiles a
+getFiles (Print a) = accessFiles a
+getFiles (Finish a) = getFiles a
+getFiles (Tasks a b) = getFiles a
 
 evalInt :: Int -> Cond -> Bool --takes value it needs to match, and outputs if condition is matched by expression
 evalInt s (Less a b) = s < b
@@ -229,10 +223,10 @@ evalBool s (Or a b) = evalBool s a || evalBool s b
 evalBool s _ = False
 
 makeInt :: String -> Int --reads string to int
-makeInt a = read a
+makeInt = read
 
 splitTriplet :: String -> [String] --splits line into triplet
-splitTriplet triplet = words triplet
+splitTriplet = words
 
 getValue :: String -> [String] -> String --returns required part of triplet depending on field
 getValue field triplet
@@ -254,16 +248,19 @@ getFields (EqBool a b) = [a]
 getFields (And a b) = getFields a ++ getFields b
 getFields (Or a b) = getFields a ++ getFields b
 
--- findConditions :: Expr -> [Cond] --returns conditions in query
--- findConditions (SimplePrint a) = []
--- findConditions (UnionPrint a) = []
--- findConditions (Get a) = []
--- findConditions (Add a) = []
--- findConditions (Delete a) = []
--- findConditions (Where a) = [a]
--- findConditions (Print a b) = findConditions b
--- findConditions (Finish a) = findConditions a
--- findConditions (Path a b) = findConditions a ++ findConditions b
+findConditions :: Seq -> [Cond]
+findConditions (Linking a b c) = [] --returns conditions in query
+findConditions (Where a) = [a]
+
+getConditions :: Expr -> [Cond]
+getConditions (Finish a) = getConditions a
+getConditions (Tasks a b) = findConditions b ++ getConditions a
+getConditions (Print a) = []
+getConditions (Union a) = []
+
+getInstructions :: Instr -> [Expr]
+getInstructions (Instruction a) = a : []
+getInstructions (Instructions a b) = [a] ++ getInstructions b
 
 andOr :: Cond -> String
 andOr (Or a b) = "or"
@@ -343,34 +340,52 @@ main = do
   contents <- readFile "language.txt"
   let tokens = alexScanTokens contents
   let result = parseLang tokens
-  print result
+  let instructionsList = getInstructions result --[Instructions]
+  let conditions = map getConditions instructionsList --[[Cond]]
+  let files = map getFiles instructionsList -- [[String]]
+  -- a <- mapM parseFiles files --[[String]]
+  -- mapM_ (putStrLn) (concat a)
+  --let a = mapM (readFile) (head files)
+  let b = finalSorter (function head files)
+  print b
 
--- let files = getFiles result
--- let constraints = findConditions result
--- print constraints
--- a <- parseFiles files
--- let triplets = unionFiles a
--- mapM print triplets
+--mapM parseTTL a
+
+--let triplets = unionFiles (concat a)
+--print triplets
 
 -- execute triplets (head constraints)
 
-parseFiles :: [FilePath] -> IO [String]
-parseFiles [] = return []
-parseFiles (x : xs) = do
-  result <- parseTTL (readFile x)
-  next <- parseFiles xs
-  return (result ++ next)
+-- anthi :: [FilePath] -> IO [String]
+-- anthi [] = return []
+-- anthi (x : xs) = do
+--   result <- readFile x
+--   next <- parseFiles xs
+--   return (result ++ next)
 
-unionFiles :: [String] -> [String] -- works
-unionFiles [] = return ""
-unionFiles (x : xs) = do
-  bs <- unionFiles xs
-  return (x ++ bs)
+-- parseFiles :: [FilePath] -> IO [String]
+-- parseFiles [] = return []
+-- parseFiles (x : xs) = do
+--   result <- parseTTL (readFile x)
+--   next <- parseFiles xs
+--   return (result ++ next)
 
-parseTTL :: IO String -> IO [String] -- works
+-- unionFiles :: [String] -> [String] -- works
+-- unionFiles [] = return ""
+-- unionFiles (x : xs) = do
+--   bs <- unionFiles xs
+--   return (x ++ bs)
+function :: [String] -> [(String, String, Object)]
+function [] = []
+function (x : xs) = do
+  let a = readFile x
+  let b = parseTTL a
+  return (b ++ funtcion xs)
+
+parseTTL :: IO String -> [(String, String, Object)] -- works
 parseTTL content = do
   input <- content
-  let tokens = alexScanTokens input
+  let tokens = alexScanTokens content
   let result = parseInput tokens
   let base = getBase result
   let prefixes = getPrefixes result base
@@ -384,7 +399,12 @@ parseTTL content = do
   let list1 = [(var, v) | (var, var2) <- zip subList predList, v <- var2]
   let list2 = [(var, v) | (var, var2) <- zip list1 obList2, v <- var2]
   let subPredObTupleList = map makeTriplet list2
-  let sortedsubPredObTupleList = sort (subPredObTupleList) --string,string,ob
+  print subPredObTupleList
+  return []
+
+finalSorter :: [(String, String, Object)] -> [String]
+finalSorter (x : xs) = do
+  let sortedsubPredObTupleList = sort (x) --string,string,ob
   let final = zip (map getSubPred sortedsubPredObTupleList) (obToStringHelper prefixes base (map getThird sortedsubPredObTupleList))
   let strings = [a ++ " " ++ b ++ " " ++ c ++ " ." | (a, b, c) <- map makeFinalTriplet'' final]
   return strings

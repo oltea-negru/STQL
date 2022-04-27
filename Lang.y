@@ -45,16 +45,17 @@ import Lexer
 %left AND OR '=' NOT
 %%
 
-Exp: Instruction       {Instruction $1}
-   | Exp THEN Exp ';'{Instructions $1 $3}
+Exp: Instruction  ';'     {Instruction $1}
+   | Instruction THEN Exp     {Instructions $1 $3}
    
 
-Instruction:  PRINT FROM File       { SimplePrint $3}
-            | PRINT FROM UNION File { UnionPrint $4}
-            | Instruction Seq       { Path $1 $2}       
+Instruction:  PRINT FROM File       { Print $3}
+            | PRINT FROM UNION File { Union $4}
+            | Instruction Seq       { Tasks $1 $2}       
   
-Seq:  WHERE LINK Field '=' Field IN File     { Link $3 $5 $7}
-    | WHERE Cond                        { Where $2}   
+Seq:  WHERE LINK Field '=' Field IN File     { Linking $3 $5 $7}
+    | WHERE Cond                             { Where $2}   
+
 
 Cond:              
       SUB '=' Uri                     { EqString $1 $3}
@@ -94,18 +95,18 @@ parseError :: [Token] -> a
 parseError [] = error "No Tokens"
 parseError (b : bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++ " " ++ show b
 
-data Instr=Instruction Expr | Instructions Instr Instr deriving (Show,Eq)
+data Instr=Instruction Expr | Instructions Expr Instr deriving (Show,Eq)
 
-data Expr=  Print Files Expr 
-          | Finish Expr
-          | Path Expr Seq
-          | SimplePrint Files
-          | UnionPrint Files
+data Expr=  Finish Expr
+          | Tasks Expr Seq
+          | Print Files
+          | Union Files
          deriving (Show,Eq)
           
 data Seq =  Where Cond
-          | Link String String Files
+          | Linking String String Files
          deriving (Show,Eq)
+
 data Cond = Less String Int 
           | Greater String Int 
           | LessOr String Int 

@@ -1,15 +1,5 @@
-<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectA> . 
 
-@base <http://www.cw.org/> .
-
-@prefix p: <http://www.cw.org/notpprefix/> .
-p:subjectC p:predicateC p:objectC .    
-
-@prefix s: <http://www.cw.org/sprefix/> .
-s:subjectD p:predicateD s:objectD .     
-
-@prefix t: <tprefix/> .                   
-t:subjectE p:predicateE t:objectE .   
+@base <http://www.aaa.org/> .
 
 <prob4B> <testPredA> <prob4C> .
 <prob4D> <testPredB> <prob4E> .
