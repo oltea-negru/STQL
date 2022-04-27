@@ -7,16 +7,13 @@ import Lexer
 %tokentype { Token } 
 %error { parseError }
 %token 
-  '('                  { TokenLBrack p}  
   ';'                  { TokenSemiColon p}  
-  ')'                  { TokenRBrack p} 
   '<'                  { TokenLess p}
   '>'                  { TokenGreater p}
   '<='                 { TokenLessEq p}
   '>='                 { TokenGreaterEq p}
   '='                  { TokenEquals p }
   NOT                  { TokenNot p}
-  ','                  { TokenComma p}
   int                  { TokenInt p $$ }
   lit                  { TokenLiteral p $$} 
   TRUE                 { TokenTrue p $$}
@@ -30,10 +27,6 @@ import Lexer
   AND                  { TokenAnd p}
   OR                   { TokenOr p}
   FROM                 { TokenFrom p}
-  ADD                  { TokenAdd p}
-  DELETE               { TokenDelete p}
-  RESTRICT             { TokenRestrict p}  
-  GET                  { TokenGet p}
   URI                  { TokenURIValue p $$}
   THEN                 { TokenThen p}
   IN                   { TokenIn p}
@@ -97,8 +90,7 @@ parseError (b : bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++ " " +
 
 data Instr=Instruction Expr | Instructions Expr Instr deriving (Show,Eq)
 
-data Expr=  Finish Expr
-          | Tasks Expr Seq
+data Expr=  Tasks Expr Seq
           | Print Files
           | Union Files
          deriving (Show,Eq)

@@ -13,7 +13,7 @@ import Data.Char ()
 import Data.Function (on)
 import Data.List (intercalate, nub, sort)
 import Data.Typeable (typeOf)
-import Lang (Cond (And, EqBool, EqInt, EqString, Greater, GreaterOr, Less, LessOr, NotEqBool, NotEqInt, NotEqString, Or), Expr (Finish, Print, Tasks, Union), Files (MoreFiles, OneFile), Instr (Instruction, Instructions), Seq (Linking, Where), parseLang)
+import Lang (Cond (And, EqBool, EqInt, EqString, Greater, GreaterOr, Less, LessOr, NotEqBool, NotEqInt, NotEqString, Or), Expr ( Print, Tasks, Union), Files (MoreFiles, OneFile), Instr (Instruction, Instructions), Seq (Linking, Where), parseLang)
 import Lexer
 import Parser (Exp (End, Prefix, Seq, TheBase, Triplets), Link (Link, Notation, Short), Literal (Literal), Object (ObjectBool, ObjectInt, ObjectLink, ObjectString), ObjectList (MultipleObjects, SingleObject), Predicate (Predicate), PredicateList (MultiplePredicates, SinglePredicate), Subject (Subject), Triplet (Triplet), parseInput)
 import System.Environment ()
@@ -150,7 +150,6 @@ accessFiles (MoreFiles a b) = a : accessFiles b
 getFiles :: Expr -> [String] -- returns list of all files mentioned in language
 getFiles (Union a) = accessFiles a
 getFiles (Print a) = accessFiles a
-getFiles (Finish a) = getFiles a
 getFiles (Tasks a b) = getFiles a
 
 evalInt :: Int -> Cond -> Bool --takes value it needs to match, and outputs if condition is matched by expression
@@ -253,10 +252,18 @@ findConditions (Linking a b c) = [] --returns conditions in query
 findConditions (Where a) = [a]
 
 getConditions :: Expr -> [Cond]
-getConditions (Finish a) = getConditions a
 getConditions (Tasks a b) = findConditions b ++ getConditions a
 getConditions (Print a) = []
 getConditions (Union a) = []
+
+findLinks::Seq->[(String,String,String)]
+findLinks (Where a)=[]
+findLinks (Linking a b c)=(a,b, head $ accessFiles c):[]
+
+getLinks::Expr->[(String,String,String)]
+getLinks (Tasks a b)=getLinks a++findLinks b
+getLinks (Print a)=[]
+getLinks (Union a)=[]
 
 getInstructions :: Instr -> [Expr]
 getInstructions (Instruction a) = a : []
@@ -266,8 +273,8 @@ andOr :: Cond -> String
 andOr (Or a b) = "or"
 andOr (And a b) = "and"
 
-execute :: IO [String] -> Cond -> IO [[String]]
-execute file constraint = do
+executeConditions :: IO [String] -> Cond -> IO [[String]]
+executeConditions file constraint = do
   line <- file
   let strings = map splitTriplet line
   let triplets = modifyTriplets strings
@@ -291,13 +298,31 @@ execute file constraint = do
           print "no"
           return [[]]
 
--- else do
---         if(length fields==2)
---             then do
---                let options=anthi triplets (fields!!0) constraint
---                let result=anthi options (fields!!1) constraint
---                print result
---         else do print "oops"
+executeLinking::IO String->(String,String,String)->IO [[String]]
+executeLinking file (field,linkedField,linkedFile)=do
+  contents <- file
+  let line=lines contents
+  let strings = map splitTriplet line
+  let triplets = modifyTriplets strings
+  contents2<- readFile (linkedFile)
+  let line2=lines contents2
+  let linkedStrings= map splitTriplet line2
+  let linkedTriplets= modifyTriplets linkedStrings
+  let listOfResults=mapM (anthi linkedTriplets linkedField field) triplets
+  z<-listOfResults
+  print z
+  return []
+
+anthi::[[String]]->String->String->[String]-> IO [String]
+anthi [] a b c = return []
+anthi (x:xs) linkedField field triplet= do
+  let linkedValue=getValue linkedField x
+  let value=getValue field triplet
+  if(value==linkedValue)
+    then do
+      return x
+    else do
+      anthi xs linkedField field triplet
 
 nee :: [[String]] -> String -> Cond -> IO [[String]] --returns triplet that match the given condition
 nee [] field cond = return []
@@ -342,19 +367,26 @@ main = do
   let result = parseLang tokens
   let instructionsList = getInstructions result --[Instructions]
   let conditions = map getConditions instructionsList --[[Cond]]
+  let links=map getLinks instructionsList
   let files = map getFiles instructionsList -- [[String]]
-  -- a <- mapM parseFiles files --[[String]]
-  -- mapM_ (putStrLn) (concat a)
-  --let a = mapM (readFile) (head files)
-  let b = finalSorter (function head files)
-  print b
+  let a= parseFiles $ head files --IO[String]
+  let passthis=readFile $ head $ files !! 1
+  -- mapM (putStrLn) a
+  -- executeConditions a conditions)
+  print links
+  executeLinking passthis (head $ links !!1)
+
+
+
+
+
 
 --mapM parseTTL a
 
 --let triplets = unionFiles (concat a)
 --print triplets
 
--- execute triplets (head constraints)
+-- executeConditions triplets (head constraints)
 
 -- anthi :: [FilePath] -> IO [String]
 -- anthi [] = return []
@@ -375,17 +407,29 @@ main = do
 -- unionFiles (x : xs) = do
 --   bs <- unionFiles xs
 --   return (x ++ bs)
-function :: [String] -> [(String, String, Object)]
-function [] = []
-function (x : xs) = do
-  let a = readFile x
-  let b = parseTTL a
-  return (b ++ funtcion xs)
+-- function :: [String] -> [(String, String, Object)]
+-- function [] = []
+-- function (x : xs) = do
+--   let a = readFile x
+--   let b = parseTTL a
+--   return (b ++ funtcion xs)
+parseFiles :: [FilePath] -> IO [String]
+parseFiles [] = return []
+parseFiles (x : xs) = do
+  result <- parseTTL (readFile x)
+  next <- parseFiles xs
+  return (result ++ next)
 
-parseTTL :: IO String -> [(String, String, Object)] -- works
+unionFiles :: [String] -> [String] -- works
+unionFiles [] = return ""
+unionFiles (x : xs) = do
+  bs <- unionFiles xs
+  return (x ++ bs)
+
+parseTTL :: IO String -> IO [String] -- works
 parseTTL content = do
   input <- content
-  let tokens = alexScanTokens content
+  let tokens = alexScanTokens input
   let result = parseInput tokens
   let base = getBase result
   let prefixes = getPrefixes result base
@@ -399,12 +443,7 @@ parseTTL content = do
   let list1 = [(var, v) | (var, var2) <- zip subList predList, v <- var2]
   let list2 = [(var, v) | (var, var2) <- zip list1 obList2, v <- var2]
   let subPredObTupleList = map makeTriplet list2
-  print subPredObTupleList
-  return []
-
-finalSorter :: [(String, String, Object)] -> [String]
-finalSorter (x : xs) = do
-  let sortedsubPredObTupleList = sort (x) --string,string,ob
+  let sortedsubPredObTupleList = sort (subPredObTupleList) --string,string,ob
   let final = zip (map getSubPred sortedsubPredObTupleList) (obToStringHelper prefixes base (map getThird sortedsubPredObTupleList))
   let strings = [a ++ " " ++ b ++ " " ++ c ++ " ." | (a, b, c) <- map makeFinalTriplet'' final]
   return strings

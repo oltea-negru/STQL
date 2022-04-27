@@ -404,7 +404,7 @@ happySeq = happyDontSeq
 
 
 parseError :: [Token] -> a
-parseError [] = error "No Tokens"
+parseError [] = error ""
 parseError (b : bs) = error $ "Incorrect syntax -----> " ++ tokenPosn b ++ " " ++ show b
 data Exp = TheBase Link
          | Prefix Literal Link
