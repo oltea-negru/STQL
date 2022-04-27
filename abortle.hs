@@ -320,7 +320,7 @@ anthi (x:xs) linkedField field triplet= do
   let value=getValue field triplet
   if(value==linkedValue)
     then do
-      return x
+      return triplet
     else do
       anthi xs linkedField field triplet
 
