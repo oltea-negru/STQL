@@ -1,0 +1,45 @@
+<http://www.cw.org/subjectA> <http://www.cw.org/predicateA> <http://www.cw.org/objectA> . 
+
+@base <http://www.cw.org/> .
+
+<subjectB> <predicateB> <objectB> .         
+@prefix p: <http://www.cw.org/pprefix/> .
+p:subjectC p:predicateC p:objectC .    
+
+@prefix q: <http://www.cw.org/qprefix/> .
+p:subjectD q:predicateD q:objectD .     
+
+@prefix r: <rprefix/> .                   
+p:subjectE r:predicateE q:objectE .     
+
+<testSubA> <hasNegInt> -50 .
+<testSubA> <hasPosInt> +50 .
+<testSubA> <hasPosInt> 50 .
+<testSubA> <hasBool> true .
+<testSubA> <hasBool> false .
+<testSubA> <hasStringLit> "literalstring" .
+
+<testSubA> <testPredList> -5 ; <testPredList> 10 ; <testPredList> 20 .
+
+<testSubA> <testObjList> -5 , 10 , 20 .
+
+<http://www.cw.org/#problem2> <testPredA> true .
+<http://www.cw.org/#problem2> <testPredA> false .
+<#problem2> <testPredB> true .
+<#problemNot2> <testPredB> true .
+<#problemNot2> <testPredB> false .
+
+
+<testSubA><http://www.cw.org/problem3/#predicate1> true .
+<testSubB><http://www.cw.org/problem3/#predicate2> true .
+<testSubC><http://www.cw.org/problem3/#predicate3> true .
+<testSubA><http://www.cw.org/problem3/#predicate4> true .
+<testSubB><http://www.cw.org/problem3/#predicate5> true .
+<testSubC><http://www.cw.org/problem3/#predicate6> true .
+<testSubC><problem3/#predicate2> true .
+
+
+<prob4A> <testPredA> <prob4B> .
+<prob4C> <testPredB> <prob4D> .
+<prob4E> <testPredC> <prob4F> .
+

@@ -9,6 +9,7 @@ module Abortle where
 
 import Control.Monad ()
 import Data.Char ()
+import Data.Char
 import Data.Function (on)
 import Data.List (intercalate, nub, sort)
 import Data.Typeable (typeOf)
@@ -18,18 +19,18 @@ import Parser (Exp (End, Prefix, Seq, TheBase, Triplets), Link (Link, Notation, 
 import System.Environment ()
 import System.IO ()
 
-sortObjs :: Object -> Object -> Ordering --DEFINATELY 1000000% WORKS 
+sortObjs :: Object -> Object -> Ordering --DEFINATELY 1000000% WORKS but dont think we actually need it
 sortObjs (ObjectLink ob1) (ObjectLink ob2) = compare ob1 ob2
 sortObjs (ObjectInt ob1) (ObjectInt ob2) = compare ob1 ob2
 sortObjs (ObjectBool ob1) (ObjectBool ob2) = compare ob1 ob2
 sortObjs (ObjectString ob1) (ObjectString ob2) = compare ob1 ob2
-sortObjs (ObjectLink ob2) _ = LT
-sortObjs (ObjectString ob1) _ = GT
-sortObjs (ObjectInt ob1) (ObjectBool ob2) = LT
-sortObjs (ObjectInt ob1) (ObjectString ob2) = LT
-sortObjs (ObjectBool ob1) (ObjectString ob2) = LT
-sortObjs (ObjectBool ob1) _ = GT
-sortObjs _ _ = GT
+sortObjs (ObjectLink ob1) _ = GT
+sortObjs (ObjectString ob1) _ = LT
+sortObjs (ObjectInt ob1) (ObjectBool ob2) = GT
+sortObjs (ObjectInt ob1) (ObjectString ob2) = GT
+sortObjs (ObjectBool ob1) (ObjectString ob2) = GT
+sortObjs (ObjectBool ob1) _ = LT
+sortObjs _ _ = LT
 
 getBase :: Exp -> String
 getBase (TheBase (Link a)) = a
@@ -107,11 +108,12 @@ noRBracket (a : as)
   | a == '>' = noRBracket as
   | otherwise = a : noRBracket as
 
-makeFinalTriplet'' :: ((String, String), String) -> (String, String, String)
-makeFinalTriplet'' ((a, b), c) = (a, b, c)
+makeFinalTriplet:: ((String, String), String)-> (String, String, String)
+makeFinalTriplet ((a,b),c)  | c=="True" ||  c== "False" = (a,b, map toLower ( c))
+                            | otherwise = (a,b,  c)
 
-makeTriplet :: ((String, String), Object) -> (String, String, Object)
-makeTriplet ((a, b), c) = (a, b, c)
+makeTriplet::((String,String),Object)->(String, String, Object)
+makeTriplet ((a,b),c) = (a,b,c)
 
 getFirst :: (String, String, Object) -> String
 getFirst (a, b, c) = a
@@ -125,17 +127,17 @@ getThird (a, b, c) = c
 getSubPred :: (String, String, Object) -> (String, String)
 getSubPred (a, b, c) = (a, b)
 
-obToString :: [(String, String)] -> String -> Object -> String
-obToString prefixes base (ObjectLink (Link a)) = a
-obToString prefixes base (ObjectLink (Short a)) = (noRBracket base ++ noLBracket a)
-obToString prefixes base (ObjectLink (Notation (Literal a) (Literal b))) = (matchPrefix prefixes a ++ b ++ ">")
-obToString prefixes base (ObjectString (Literal a)) = a
-obToString prefixes base (ObjectBool a) = show a
-obToString prefixes base (ObjectInt a) = show a
+--makes objects into strings
+obToString::  Object -> String
+obToString  (ObjectLink (Link a))= a
+obToString  (ObjectString (Literal a)) =a
+obToString  (ObjectBool a) = show a
+obToString  (ObjectInt a) =show a
+obToString _ =[]
 
-obToStringHelper :: [(String, String)] -> String -> [Object] -> [String]
-obToStringHelper prefixes base [] = []
-obToStringHelper prefixes base (x : xs) = (obToString prefixes base x : obToStringHelper prefixes base xs)
+obToStringHelper::  [Object] -> [String]
+obToStringHelper [] = []
+obToStringHelper (x:xs) = (obToString x :obToStringHelper xs)
 
 modifyTriplets :: [[String]] -> [[String]] --remove all brackets from triplet
 modifyTriplets [] = []
@@ -296,8 +298,8 @@ executeConditions file constraint = do
           print "no"
           return [[]]
 
-executeLinking:: IO [String]->[(String,String,String)]->IO [[String]]
-executeLinking file [(field,linkedField,linkedFile)]=do
+executeLinking:: IO [String]->(String,String,String)->IO [[String]]
+executeLinking file (field,linkedField,linkedFile)=do
   contents <- file
   -- let line=lines contents
   let strings = map splitTriplet contents
@@ -307,8 +309,22 @@ executeLinking file [(field,linkedField,linkedFile)]=do
   let linkedStrings= map splitTriplet line2
   let linkedTriplets= modifyTriplets linkedStrings
   let listOfResults=mapM (anthi linkedTriplets linkedField field) triplets
-  strip<-listOfResults
+  strip <- listOfResults
   return strip
+
+
+convertObsToFull :: [(String, String)] -> String -> Object -> Object --Converts shorts and notations to objectLinks
+convertObsToFull prefixes base o@(ObjectLink (Link a)) = o
+convertObsToFull prefixes base o@(ObjectLink (Short a)) = ObjectLink(Link (noRBracket base ++ noLBracket a))
+convertObsToFull prefixes base o@(ObjectLink (Notation (Literal a) (Literal b))) = ObjectLink(Link (matchPrefix prefixes a ++ b ++ ">"))
+convertObsToFull prefixes base o@(ObjectString (Literal a)) = o
+convertObsToFull prefixes base o@(ObjectBool a) =  o
+convertObsToFull prefixes base o@(ObjectInt a) =  o
+
+convertHelper :: [(String, String)] -> String -> [Object] -> [Object]
+convertHelper prefixes base [] = []
+convertHelper prefixes base (x : xs) = (convertObsToFull prefixes base x : convertHelper prefixes base xs)
+
 
 anthi::[[String]]->String->String->[String]-> IO [String]
 anthi [] a b c = return []
@@ -365,9 +381,10 @@ evaluate (files:fileList) (cond:condList) (link:linkList) = do
       return(result++next)
     else 
       do
-        result<-executeLinking files link
-        next<-evaluate fileList condList linkList
+        result<-executeLinking files (head link)
+        next<-evaluate fileList condList  linkList
         return(result++next)
+
 
 
 
@@ -380,10 +397,22 @@ main = do
   let links=map getLinks instructionsList
   let files=map getFiles instructionsList -- [[String]]
   let parsedFiles= map parseFiles files --IO[String]
-  results<- evaluate parsedFiles  conditions links
+  print conditions
+  print links
+  --let triplets = unionFiles a
+  -- mapM print triplets
+  results<- evaluate parsedFiles conditions links
   let stuff=map unwords results
-  print (typeOf stuff)
   mapM (putStrLn) stuff
+
+
+-- parseFiles :: [FilePath] -> IO [String]
+-- parseFiles [] = return []
+-- parseFiles (x : xs) = do
+--   result <- parseTTL (readFile x)
+--   next <- parseFiles xs
+--   return (result ++ next)
+
 
 parseFiles :: [FilePath] -> IO [String]
 parseFiles [] = return []
@@ -398,24 +427,76 @@ unionFiles (x : xs) = do
   bs <- unionFiles xs
   return (x ++ bs)
 
-parseTTL :: IO String -> IO [String] -- works
-parseTTL content = do
-  input <- content
+--do this for all files in union and add output into a big fat list and pass into finalSorter (if needed when files are appended)
+--this does still sort and remove duplicates before returning triples tho
+parseTTL :: IO String -> [(String,String,Object)] --parses ttl file and returns list of triplets sorted
+parseTTL contents = do
+  input <- contents
   let tokens = alexScanTokens input
   let result = parseInput tokens
   let base = getBase result
-  let prefixes = getPrefixes result base
-  let triplets = getTriplets result
+  let prefixes =getPrefixes result base
+  let triplets =getTriplets result
   let subjPredList = map (getSubjects base prefixes) triplets
-  let predObjList = [getPredicateList base prefixes (snd a) | a <- subjPredList]
-  let obList1 = [[getObjects base prefixes (snd b) | b <- a] | a <- predObjList]
+  let predObjList = [getPredicateList base prefixes (snd a)|a<-subjPredList]
+  let obList1 =  [[getObjects base prefixes (snd b)|b<-a]|a<-predObjList]
   let subList = map fst subjPredList
   let predList = map (map fst) predObjList
   let obList2 = (concat obList1)
-  let list1 = [(var, v) | (var, var2) <- zip subList predList, v <- var2]
-  let list2 = [(var, v) | (var, var2) <- zip list1 obList2, v <- var2]
-  let subPredObTupleList = map makeTriplet list2
-  let sortedsubPredObTupleList = sort (subPredObTupleList) --string,string,ob
-  let final = zip (map getSubPred sortedsubPredObTupleList) (obToStringHelper prefixes base (map getThird sortedsubPredObTupleList))
-  let strings = [a ++ " " ++ b ++ " " ++ c ++ " ." | (a, b, c) <- map makeFinalTriplet'' final]
-  return strings
+  let list1=[(var,v)|(var,var2)<-zip subList predList, v<-var2]
+  let list2=[(var,v)|(var,var2)<-zip list1 obList2, v<-var2]
+  let subPredObTupleList= map makeTriplet list2
+  let fullObjLinks=(convertHelper prefixes base (map getThird subPredObTupleList)) --converts objects to full link objects
+  let subPredObTupleList2=zip (map getSubPred subPredObTupleList)(fullObjLinks) --((string,string),ob) full form
+  let finalSubPredObTupleList= nub $ map makeTriplet subPredObTupleList2 --(String,String,Object)
+  let sortedSubPredObTupleList = sort (finalSubPredObTupleList) --(string,string,ob) sorted -> convert to (string,String,string)
+  return sortedSubPredObTupleList
+
+
+--pass in final list of allllllllll tuples to be in the final file after unioning
+finalSorter :: [(String,String,Object)] -> IO[String]
+finalSorter subPredObTupleList = do
+  let sortedSubPredObTupleList = sort (subPredObTupleList) --(string,string,ob) sorted -> convert to (string,String,string)
+  let finalSortedStringsubPredObTupleList = zip (map getSubPred sortedSubPredObTupleList) (map (obToString) (map getThird sortedSubPredObTupleList)) --((string,string),string)
+  let sortedExpandedtripletStrings = [a ++ " " ++ b ++ " " ++ c ++ " ." | (a, b, c) <- map makeFinalTriplet finalSortedStringsubPredObTupleList]
+  return sortedExpandedtripletStrings
+ 
+
+-- parseTTL :: IO String -> IO [String] --parses ttl file and returns list of triplets sorted
+-- parseTTL content = do
+--   input <- contents
+--   let tokens = alexScanTokens input
+--   let result = parseCalc tokens
+--   let base = getBase result
+--   let prefixes =getPrefixes result base
+--   let triplets =getTriplets result
+--   let subjPredList = map (getSubjects base prefixes) triplets
+--   let predObjList = [getPredicateList base prefixes (snd a)|a<-subjPredList]
+--   let obList1 =  [[getObjects base prefixes (snd b)|b<-a]|a<-predObjList]
+--   let subList = map fst subjPredList
+--   let predList = map (map fst) predObjList
+--   let obList2 = (concat obList1)
+--   let list1=[(var,v)|(var,var2)<-zip subList predList, v<-var2]
+--   let list2=[(var,v)|(var,var2)<-zip list1 obList2, v<-var2]
+--   let subPredObTupleList= map makeTriplet list2
+--   let fullObjLinks=(convertHelper prefixes base (map getThird subPredObTupleList)) --converts objects to full link objects
+--   let subPredObTupleList2=zip (map getSubPred subPredObTupleList)(fullObjLinks) --((string,string),ob) full form
+--   let finalSubPredObTupleList= nub $ map makeTriplet subPredObTupleList2 --(String,String,Object)
+--   let sortedSubPredObTupleList = sort (finalSubPredObTupleList) --(string,string,ob) sorted -> convert to (string,String,string)
+--   let finalSortedStringsubPredObTupleList = zip (map getSubPred sortedSubPredObTupleList) (map (obToString) (map getThird sortedsubPredObTupleList)) --((string,string),string)
+--   let sortedExpandedtripletStrings = [ a++" "++b++" "++c++" ."| (a,b,c)<- map makeFinalTriplet finalSortedStringsubPredObTupleList]
+--   return sortedExpandedtripletStrings
+-- } 
+
+
+-- main = do
+--   contents <- readFile "language.txt"
+--   let tokens = alexScanTokens contents
+--   let result = parseLang tokens
+--   let files = getFiles result
+--   let constraints = findConditions result
+--   print constraints
+--   a <- parseFiles files
+--   let triplets = unionFiles a
+--   mapM print triplets
+--   print result
