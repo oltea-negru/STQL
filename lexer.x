@@ -28,10 +28,6 @@ $white+                                                                   ;
   AND                                                        { \p s -> TokenAnd p}
   OR                                                         { \p s -> TokenOr p}
   FROM                                                       { \p s -> TokenFrom p}
-  ADD                                                        { \p s -> TokenAdd p}
-  DELETE                                                     { \p s -> TokenDelete p}
-  RESTRICT                                                   { \p s -> TokenRestrict p}  
-  GET                                                        { \p s -> TokenGet p}
   THEN                                                       { \p s -> TokenThen p}
   LINK                                                       { \p s -> TokenLink p}
   IN                                                         { \p s -> TokenIn p}
@@ -84,12 +80,7 @@ data Token =
   TokenIn AlexPosn                |
   TokenEquals AlexPosn            |
   TokenNot AlexPosn               |
-  TokenAdd AlexPosn               |
   TokenThen AlexPosn              |
-  TokenDelete AlexPosn            |
-  TokenChange AlexPosn            | 
-  TokenRestrict AlexPosn          |
-  TokenGet AlexPosn               |
   TokenURIValue AlexPosn String   |
   TokenFile AlexPosn String       |
   TokenLBrack AlexPosn            |
@@ -121,11 +112,6 @@ tokenPosn (TokenComment (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenOr (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenEquals (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenNot (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenAdd (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenChange (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenDelete (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenRestrict (AlexPn _ x y)) = show  x ++":"++show y
-tokenPosn (TokenGet (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenLessEq (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenGreaterEq (AlexPn _ x y)) = show  x ++":"++show y
 tokenPosn (TokenURIValue (AlexPn _ x y) s) = show  x ++":"++show y

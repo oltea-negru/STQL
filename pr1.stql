@@ -1,1 +1,1 @@
-PRINT FROM foo.ttl WHERE SUB =http://www.cw.org/#problem2 AND OBJ = true ;
+PRINT FROM UNION foo.ttl bar.ttl;

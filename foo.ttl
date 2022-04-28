@@ -17,7 +17,7 @@ p:subjectE r:predicateE q:objectE .
 <testSubA> <hasPosInt> 50 .
 <testSubA> <hasBool> true .
 <testSubA> <hasBool> false .
-<testSubA> <hasStringLit> "literalstring" .
+<testSubA> <aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa> "true" .
 
 <testSubA> <testPredList> -5 ; <testPredList> 10 ; <testPredList> 20 .
 
