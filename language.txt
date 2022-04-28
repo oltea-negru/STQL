@@ -1,3 +1,2 @@
-
-PRINT FROM UNION foo.ttl bar.ttl;
+PRINT FROM foo.ttl WHERE LINK OBJ = SUB IN bar.ttl THEN PRINT FROM bar.ttl WHERE LINK OBJ = SUB IN foo.ttl  ;
 
