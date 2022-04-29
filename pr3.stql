@@ -1,1 +1,3 @@
-PRINT FROM foo.ttl WHERE PRED =http://www.cw.org/problem3/#predicate1 OR PRED=http://www.cw.org/problem3/#predicate2 OR PRED=http://www.cw.org/problem3/#predicate3; 
+PRINT FROM foo.ttl WHERE PRED=http://www.cw.org/problem3/#predicate1
+THEN PRINT FROM foo.ttl WHERE PRED=http://www.cw.org/problem3/#predicate2
+THEN PRINT FROM foo.ttl WHERE PRED=http://www.cw.org/problem3/#predicate3; 
