@@ -9,7 +9,7 @@ module Main where
 
 import Control.Monad ()
 import Control.Monad.Cont (cont)
-import Data.Char (toLower)
+import Data.Char (toLower,toUpper)
 import Data.Function (on)
 import Data.List (intercalate, nub, sort, isPrefixOf)
 import Data.Typeable (typeOf)
@@ -354,7 +354,8 @@ nee (x : xs) field cond = do
     then do
       if (v=="True" || v=="False")
         then do
-          let value = read v :: Bool
+          let reading=upFirst v
+          let value = read reading :: Bool
           let bool = evalBool value cond
           if (bool)
             then do
@@ -385,9 +386,11 @@ evaluate [] [] [] =return []
 evaluate (files:fileList) (cond:condList) (link:linkList) = do
   if(cond==[]&&link==[])
     then do 
-      result<-files
+      output<-files
+      let line=map words output
+      let result=map newLine (map lowerBools line)
       next<-evaluate fileList condList linkList
-      return(result:next)
+      return(result++next)
       else do
   if(cond/=[])
     then do 
@@ -415,13 +418,21 @@ main = do
   let parsedFiles= map parseFiles files --IO[String]
   results<- evaluate parsedFiles  conditions links
   let output= sort (nub results)
-  let wow=(map(map lowerBools)) output
-  print (typeOf wow)
-  mapM (mapM putStr) wow
+  let final=map lowerBools output
+  mapM (mapM putStr) final
 
-lowerBools::String->String
-lowerBools x | x=="True" || x=="False" = map toLower x
-             | otherwise = x
+newLine::[String]->[String]
+newLine [] = []
+newLine (x:xs) | x=="."=(x++"\n"):newLine xs
+               | otherwise = x: newLine xs
+
+lowerBools::[String]->[String]
+lowerBools []=[]
+lowerBools (x:xs) | x=="False" || x=="True" =map toLower x :lowerBools xs
+                  | otherwise =x: lowerBools xs
+
+upFirst::String->String
+upFirst s = toUpper (head s) : drop 1 s
 
 parseFiles :: [FilePath] -> IO [String]
 parseFiles [] = return []
