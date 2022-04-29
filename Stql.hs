@@ -1,17 +1,15 @@
 module Main where
 
 import Control.Monad ()
-import Control.Monad.Cont (cont)
 import Data.Char (toLower,toUpper)
 import Data.Function (on)
-import Data.List (intercalate, nub, sort, isPrefixOf)
+import Data.List (intercalate, nub, sort, isPrefixOf,sortBy)
 import Data.Typeable (typeOf)
 import Lang (Cond (And, EqBool, EqInt, EqString, Greater, GreaterOr, Less, LessOr, NotEqBool, NotEqInt, NotEqString, Or), Expr ( Print, Tasks, Union), Files (MoreFiles, OneFile), Instr (Instruction, Instructions), Seq (Linking, Where), parseLang)
 import Lexer
 import Parser (Exp (End, Prefix, Seq, TheBase, Triplets), Link (Link, Notation, Short), Literal (Literal), Object (ObjectBool, ObjectInt, ObjectLink, ObjectString), ObjectList (MultipleObjects, SingleObject), Predicate (Predicate), PredicateList (MultiplePredicates, SinglePredicate), Subject (Subject), Triplet (Triplet), parseInput)
 import System.Environment (getArgs)
 import System.IO ()
-import Text.XHtml (base, fieldset, input)
 
 obToString :: [(String, String)] -> String -> Object -> String
 obToString prefixes base (ObjectLink (Link a)) = a
@@ -515,7 +513,7 @@ evaluate (files:fileList) (cond:condList) (link:linkList) = do
     then do 
       output<-files
       let line=map words output
-      let result=map newLine (map lowerBools line)
+      let result=map newLine (line)
       next<-evaluate fileList condList linkList
       return(result++next)
       else do
@@ -543,10 +541,11 @@ main = do
   let links=map getLinks instructionsList
   let files=map getFiles instructionsList -- [[String]]
   let parsedFiles= map parseFiles files --IO[String]
-  results<- evaluate parsedFiles  conditions links
-  let output= sort (nub results)
-  let final=map lowerBools output
-  mapM (mapM putStr) final
+  results<- evaluate parsedFiles  conditions links --[[String]]
+  let sorted = map merge (finalSort(map splitToTriples results))
+  let final = map lowerBools (map newLine sorted)
+  let output=  (nub final)
+  mapM (mapM putStr) output
 
 -- parsed an unions a list of files
 parseFiles :: [FilePath] -> IO [String]
@@ -578,3 +577,46 @@ parseTTL content = do
   let final = zip (map getSubPred sortedsubPredObTupleList) (obToStringHelper prefixes base (map (getThird) sortedsubPredObTupleList))
   let strings = [a ++ " " ++ b ++ " " ++ c ++ " .\n" | (a, b, c) <- map makeFinalTriplet final]
   return strings
+
+
+splitToTriples :: [String] -> (String,String,String)
+splitToTriples x = (head x,x!!1,x!!2)
+
+
+merge ::  (String,String,String)-> [String]
+merge (a,b,c) = (a:b:c:["."])
+
+
+--get type of object
+getType :: String -> String
+getType s
+  | (head s == '\"') = "String"
+  | (head s == 'T') || (head s == 'F') = "Bool"
+  | head s == '<' = "Link"
+  | otherwise = "Int"
+
+sortSubs :: (String, String, String) -> (String,String, String) -> Ordering
+sortSubs (a, b, c) (d, e, f)| a==d = sortPreds (a, b, c) (d, e, f)
+                            |otherwise = compare a d
+                            
+sortPreds :: (String, String, String) -> (String,String, String) -> Ordering
+sortPreds (a, b, c) (d, e, f)| b==e = sortObjs (a, b, c) (d, e, f)
+                             |otherwise = compare a d
+
+sortObjs :: (String, String, String) -> (String, String, String) -> Ordering
+sortObjs (a, b, s1) (d, e, s2)
+  | (getType s1 == "Link" && getType s2 == "Link") = compare s1 s2
+  | (getType s1 == "Int" && getType s2 == "Int") = compare (read s1 :: Int) (read s2 :: Int)
+  | (getType s1 == "String" && getType s2 == "String") = compare s1 s2
+  | (getType s1 == "Bool" && getType s2 == "Bool") = compare (read s1 :: Bool) (read s2 :: Bool)
+  | (getType s1 == "Link") = GT
+  | (getType s2 == "Link") = LT
+  | (getType s1 == "String") = LT
+  | (getType s2 == "String") = GT
+  | (getType s1 == "Int" && getType s2 == "Bool") = GT
+  | (getType s1 == "Bool" && getType s2 == "Int") = LT
+  | otherwise = LT
+
+--sorts final triple
+finalSort :: [(String, String, String)] -> [(String, String, String)] 
+finalSort xs = sortBy sortSubs xs

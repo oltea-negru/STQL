@@ -1,2 +1,2 @@
 PRINT FROM foo.ttl WHERE LINK  OBJ = SUB IN bar.ttl THEN
-PRINT FROM foo.ttl WHERE OBJ=true;
+PRINT FROM bar.ttl WHERE LINK OBJ=SUB IN foo.ttl;

@@ -21,7 +21,7 @@ p:subjectE r:predicateE q:objectE .
 
 <testSubA> <testPredList> -5 ; <testPredList> 10 ; <testPredList> 20 .
 
-<testSubA> <testObjList> -5 , 10 , 20 .
+<testSubA> <testObjLisedkmedmekekdkdmdet> "1111" , "22" , "3" .
 
 <http://www.cw.org/#problem2> <testPredA> true .
 <http://www.cw.org/#problem2> <testPredA> false .
