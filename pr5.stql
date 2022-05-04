@@ -1,6 +1,1 @@
-PRINT FROM foo.ttl WHERE FILTER OBJ<0 AND OBJ>99
-ADD SUB <http://www.cw.org/problem5/#inRange> <false>
-THEN PRINT FROM foo.ttl WHERE FILTER OBJ>=0 AND OBJ<=99
-ADD SUB PRED <+1>
-THEN PRINT FROM foo.ttl WHERE FILTER OBJ>=0 AND OBJ<=99
-ADD SUB  <http://www.cw.org/problem5/#inRange> <true> ;
+PRINT FROM UNION foo.ttl bar.ttl WHERE OBJ=-1 OR OBJ=0;

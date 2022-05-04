@@ -14,14 +14,14 @@ p:subjectE r:predicateE q:objectE .
 
 <testSubA> <hasNegInt> -50 .
 <testSubA> <hasPosInt> +50 .
-<testSubA> <hasPosInt> 50 .
-<testSubA> <hasBool> true .
+<testSubA> <hasPosInt> -1 .
+<testSubA> <hasBool> 0 .
 <testSubA> <hasBool> false .
 <testSubA> <hasStringLit> "literalstring" .
 
 <testSubA> <testPredList> -5 ; <testPredList> 10 ; <testPredList> 20 .
 
-<testSubA> <testObjLisedkmedmekekdkdmdet> "1111" , "22" , "3" .
+<testSubA> <testObjLisedkmedmekekdkdmdet> -1 , 0 , 0 .
 
 <http://www.cw.org/#problem2> <testPredA> true .
 <http://www.cw.org/#problem2> <testPredA> false .
