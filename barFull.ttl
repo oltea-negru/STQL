@@ -1,0 +1,7 @@
+<http://www.cw.org/notpprefix/subjectC><http://www.cw.org/notpprefix/predicateC><http://www.cw.org/notpprefix/objectC>.
+<http://www.cw.org/prob4B><http://www.cw.org/testPredA><http://www.cw.org/prob4C>.
+<http://www.cw.org/prob4D><http://www.cw.org/testPredB><http://www.cw.org/prob4E>.
+<http://www.cw.org/prob4F><http://www.cw.org/testPredC><http://www.cw.org/prob4A>.
+<http://www.cw.org/sprefix/subjectD><http://www.cw.org/notpprefix/predicateD><http://www.cw.org/sprefix/objectD>.
+<http://www.cw.org/subjectA><http://www.cw.org/predicateA><http://www.cw.org/objectA>.
+<http://www.cw.org/tprefix/subjectE><http://www.cw.org/notpprefix/predicateE><http://www.cw.org/tprefix/objectE>.

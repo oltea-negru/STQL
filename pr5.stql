@@ -1,1 +1,1 @@
-PRINT FROM UNION foo.ttl bar.ttl WHERE OBJ=-1 OR OBJ=0;
+PRINT FROM baz.ttl;

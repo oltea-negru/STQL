@@ -1,0 +1,4 @@
+PRINT FROM foo.ttl WHERE SUB=http://www.cw.org/problem7/#subject THEN
+PRINT FROM foo.ttl WHERE PRED=http://www.cw.org/problem7/#predicate THEN
+PRINT FROM foo.ttl WHERE OBJ=0 THEN
+PRINT FROM foo.ttl WHERE OBJ=-1;

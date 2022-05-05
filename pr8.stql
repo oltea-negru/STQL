@@ -1,0 +1,3 @@
+PRINT FROM UNION foo.ttl bar.ttl baz.ttl WHERE LINK PRED = PRED IN foo.ttl THEN
+PRINT FROM UNION foo.ttl bar.ttl baz.ttl WHERE LINK PRED = PRED IN bar.ttl THEN
+PRINT FROM UNION foo.ttl bar.ttl baz.ttl WHERE LINK PRED = PRED IN baz.ttl;
