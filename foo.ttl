@@ -41,4 +41,3 @@ p:subjectE r:predicateE q:objectE .
 
 
 <http://www.cw.org/problem10/#maxValue><http://www.cw.org/problem10/#isValue> 18 .
-
